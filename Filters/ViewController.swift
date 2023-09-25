@@ -8,10 +8,19 @@
 // first commit remote repository
 import UIKit
 
+enum AlertActions:String {
+    case Recommendation
+    case PriceDown
+    case PriceUp
+    case Alphabetically
+}
 protocol CustomRangeViewDelegate: AnyObject {
     func didChangedFilterProducts(filterProducts:[Product])
 }
 class ListViewController: UIViewController {
+    
+    var alert:UIAlertController?
+    var changedAlertAction:AlertActions = .Recommendation
     
     var reserverDataSource: [Product] = []
     var dataSource: [Product] = [] {
@@ -38,6 +47,7 @@ class ListViewController: UIViewController {
         configureNavigationItem()
         dataSource = dataManager.createRandomProduct()
         reserverDataSource = dataSource
+        setupAlertSorted()
     }
     
     private func setupConstraints() {
@@ -53,7 +63,6 @@ class ListViewController: UIViewController {
     }
     
     @objc func filterButtonTapped() {
-        print("filterButtonTapped()")
         let customVC = CustomRangeViewController()
         customVC.allProducts = reserverDataSource
         customVC.delegate = self
@@ -64,8 +73,18 @@ class ListViewController: UIViewController {
     }
 
     @objc func sortedButtonTapped() {
-        print("sortedButtonTapped()")
-        // Обработчик нажатия на кнопку "sorted"
+        
+        if let alert = alert {
+            alert.actions.forEach { action in
+                if action.title == changedAlertAction.rawValue {
+                    action.setValue(UIColor.systemGray3, forKey: "titleTextColor")
+                } else {
+                    action.setValue(UIColor.systemPurple, forKey: "titleTextColor")
+                }
+                
+            }
+            present(alert, animated: true, completion: nil)
+        }
     }
 
 }
@@ -99,6 +118,89 @@ extension ListViewController:CustomRangeViewDelegate {
         dataSource = filterProducts
     }
 }
+
+extension ListViewController {
+    
+    
+    func setupAlertSorted() {
+
+        alert = UIAlertController(title: "", message: nil, preferredStyle: .actionSheet)
+        alert?.overrideUserInterfaceStyle = .dark
+        
+        
+        let recommendation = UIAlertAction(title: "Recommendation", style: .default) { action in
+            self.changedAlertAction = .Recommendation
+            print("recommendation")
+//            if let label = self.alert?.value(forKey: "__representer") as? NSObject,
+//                       let view = label.value(forKey: "label") as? UILabel {
+//                        view.textColor = UIColor.systemGray
+//                    }
+        }
+        
+        let priceDown = UIAlertAction(title: "PriceDown", style: .default) { action in
+            self.changedAlertAction = .PriceDown
+            print("Price:Down")
+//            if let label = self.alert?.value(forKey: "__representer") as? NSObject,
+//                       let view = label.value(forKey: "label") as? UILabel {
+//                        view.textColor = UIColor.systemGray
+//                    }
+        }
+
+        let priceUp = UIAlertAction(title: "PriceUp", style: .default) { action in
+            self.changedAlertAction = .PriceUp
+            print("Price:Up")
+//            if let label = self.alert?.value(forKey: "__representer") as? NSObject,
+//                       let view = label.value(forKey: "label") as? UILabel {
+//                        view.textColor = UIColor.systemGray
+//                    }
+        }
+        
+        let alphabetically = UIAlertAction(title: "Alphabetically", style: .default) { action in
+            print("Alphabetically")
+            self.changedAlertAction = .Alphabetically
+//            if let label = self.alert?.value(forKey: "__representer") as? NSObject,
+//                       let view = label.value(forKey: "label") as? UILabel {
+//                        view.textColor = UIColor.systemGray
+//                    }
+        }
+        
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel) { action in
+            
+        }
+
+//        recommendation.setValue(UIColor.systemGray4, forKey: "titleTextColor")
+        let titleAlertController = NSAttributedString(string: "Add image to avatar", attributes: [NSAttributedString.Key.font : UIFont.boldSystemFont(ofSize: 17)])
+        alert?.setValue(titleAlertController, forKey: "attributedTitle")
+
+        
+        alert?.addAction(recommendation)
+        alert?.addAction(priceDown)
+        alert?.addAction(priceUp)
+        alert?.addAction(alphabetically)
+        alert?.addAction(cancel)
+
+        
+        
+    }
+}
+
+
+class CustomAlertController: UIAlertController {
+
+    var recommendation: UIAlertAction?
+    var priceDown: UIAlertAction?
+    var priceUp: UIAlertAction?
+    var alphabetically: UIAlertAction?
+    var cancel: UIAlertAction?
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        }
+
+    
+    }
+
 
 
 class ViewController: UIViewController {

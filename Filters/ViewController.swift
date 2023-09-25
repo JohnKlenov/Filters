@@ -5,6 +5,7 @@
 //  Created by Evgenyi on 14.09.23.
 //
 // лдодло
+// first commit remote repository
 import UIKit
 
 protocol CustomRangeViewDelegate: AnyObject {

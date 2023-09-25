@@ -9,7 +9,7 @@
 import UIKit
 
 protocol CustomRangeViewDelegate: AnyObject {
-    func didTapDone(filterProducts:[Product])
+    func didChangedFilterProducts(filterProducts:[Product])
 }
 class ListViewController: UIViewController {
     
@@ -95,7 +95,7 @@ extension ListViewController: UITableViewDelegate, UITableViewDataSource {
 }
 
 extension ListViewController:CustomRangeViewDelegate {
-    func didTapDone(filterProducts: [Product]) {
+    func didChangedFilterProducts(filterProducts: [Product]) {
         dataSource = filterProducts
     }
 }

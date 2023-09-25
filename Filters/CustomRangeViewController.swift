@@ -5,14 +5,6 @@
 //  Created by Evgenyi on 14.09.23.
 //
 
-import UIKit
-
-
-protocol CustomTabBarViewDelegate: AnyObject {
-    func customTabBarViewDidTapButton(_ tabBarView: CustomTabBarView)
-}
-
-
 // при первом переходе мы имеем все products - allProducts(следовательно нам доступны все возможные характеристики)
 // при каждом нажатии на cell мы говорим отфильтруй нам только то что мы выбрали из allProducts и перемести в filterProducts.
 // filterProducts передается в метод calculateDataSource(products: filterProducts) который создает новый dataSource для collectionView.
@@ -36,6 +28,18 @@ protocol CustomTabBarViewDelegate: AnyObject {
 
 // мы используем filterProductsUniversal и при каждом срабатывании didSelect передаем в него filterProductsUniversal(allProducts + условия фильтрации) -> filterProduct, self.filterProduct = filterProduct, filterProduct.count
 // в didSelect мы должны фиксировать нажатые cell: selectedBrands.append("Adidas")
+
+import UIKit
+
+//enum StateFilters {
+//    case cell
+//    case slider
+//    case firstStart
+//}
+
+protocol CustomTabBarViewDelegate: AnyObject {
+    func customTabBarViewDidTapButton(_ tabBarView: CustomTabBarView)
+}
 
 class CustomRangeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
 
@@ -73,6 +77,9 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
     var isForcedPrice: Bool = false
     var isTouchUpInside:Bool = false
     var isFixedProducts:Bool = false
+    
+    var firstCountProducts:Int?
+//    var stateFilter: StateFilters = .firstStart
     
 //    var firstMinPrice :Int?
 //    var firstMaxPrice :Int?
@@ -173,6 +180,7 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
         
         calculateDataSource(products: allProducts)
         customTabBarView.setCounterButton(count: allProducts.count)
+        firstCountProducts = allProducts.count
 //        fixedPriceFilterProducts = allProducts
 //        calculatePriceRange(products: allProducts)
     }
@@ -188,39 +196,26 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
     }
     
     @objc func rangeSliderValueChanged(rangeSlider: RangeSlider) {
-        print("rangeSliderValueChanged")
-//        print("rangeSlider.lowerValue - \(rangeSlider.lowerValue)")
-//        print("rangeSlider.upperValue - \(rangeSlider.upperValue)")
-        
         if !isForcedPrice {
             rangeView.updateLabels(lowerValue: rangeSlider.lowerValue, upperValue: rangeSlider.upperValue)
         }
     }
     
     @objc func rangeSliderTouchUpInside(rangeSlider: RangeSlider) {
-        print("rangeSliderTouchUpInside")
-        //        print("rangeSliderTouchUpInside lowerValue - \(rangeSlider.lowerValue)")
-        //        print("rangeSliderTouchUpInside upperValue - \(rangeSlider.upperValue)")
+        firstCountProducts = nil
         isFixedProducts = true
         fixedPriceFilterProducts = filterProductsUniversal(products: allProducts, color: selectedCell[0], brand: selectedCell[1], material: selectedCell[2], season: selectedCell[3], minPrice: Int(rangeSlider.lowerValue), maxPrice: Int(rangeSlider.upperValue))
-//        if let firstMaxPrice = firstMaxPrice, let firstMinPrice = firstMinPrice, firstMinPrice == Int(rangeSlider.lowerValue) && firstMaxPrice == Int(rangeSlider.upperValue) {
-//            isFixedProducts = false
-//            filterProducts = filterProductsUniversal(products: allProducts, color: selectedCell[0], brand: selectedCell[1], material: selectedCell[2], season: selectedCell[3])
-//        } else {
-//            isFixedProducts = true
-//            fixedPriceFilterProducts = filterProductsUniversal(products: allProducts, color: selectedCell[0], brand: selectedCell[1], material: selectedCell[2], season: selectedCell[3], minPrice: Int(rangeSlider.lowerValue), maxPrice: Int(rangeSlider.upperValue))
-//        }
     }
     
     
     @objc func didTapCloseButton() {
+        
+        delegate?.didChangedFilterProducts(filterProducts: allProducts)
         self.dismiss(animated: true, completion: nil)
-        print("didTapCloseButton")
-//        navigationController?.popViewController(animated: true)
-//        rangeSlider.isEnabled = false
     }
     
     @objc func didTapResetButton() {
+        firstCountProducts = allProducts.count
         rangeSlider.isEnabled = true
         isForcedPrice = false
         isFixedProducts = false
@@ -229,7 +224,6 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
         customTabBarView.setCounterButton(count: allProducts.count)
         calculatePriceForFilterProducts(products: allProducts)
         collectionView.reloadData()
-        print("didTapResetButton")
     }
 
     private func configureNavigationItem() {
@@ -454,8 +448,8 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         
+        firstCountProducts = nil
         isForcedPrice = false
-//        isTouchUpInside = false
         
         if selectedStates[indexPath] == true {
                     selectedStates[indexPath] = false
@@ -588,12 +582,18 @@ extension CustomRangeViewController: CustomTabBarViewDelegate {
     func customTabBarViewDidTapButton(_ tabBarView: CustomTabBarView) {
         // Ваш код обработки нажатия на кнопку
         print("customTabBarViewDidTapButton")
-        // при первом старте если нажмем Done уйдет пустой массив в любом случае
-        if !isFixedProducts {
-            delegate?.didTapDone(filterProducts: filterProducts)
+        
+        // если 0 кнопка должна быть не активна
+        if let _ = firstCountProducts {
+            delegate?.didChangedFilterProducts(filterProducts: allProducts)
         } else {
-            delegate?.didTapDone(filterProducts: fixedPriceFilterProducts)
+            if !isFixedProducts {
+                delegate?.didChangedFilterProducts(filterProducts: filterProducts)
+            } else {
+                delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts)
+            }
         }
+        
         self.dismiss(animated: true, completion: nil)
     }
 }
@@ -706,7 +706,7 @@ class HeaderFilterCollectionReusableView: UICollectionReusableView {
 //        view.backgroundColor = UIColor.opaqueSeparator
 //        return view
 //    }()
-
+    
     let label:UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -757,6 +757,7 @@ class CustomTabBarView: UIView {
     
     weak var delegate: CustomTabBarViewDelegate?
     
+//    var countProducts:Int?
     let button: UIButton = {
         var configButton = UIButton.Configuration.gray()
         configButton.title = "Show products"
@@ -803,6 +804,11 @@ class CustomTabBarView: UIView {
     
     func setCounterButton(count:Int) {
         button.configuration?.title = "Show products(\(count))"
+        if count <= 0 {
+            button.isEnabled = false
+        } else {
+            button.isEnabled = true
+        }
     }
     
     @objc func didTapDoneButton() {

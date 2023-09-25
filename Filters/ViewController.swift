@@ -14,9 +14,11 @@ enum AlertActions:String {
     case PriceUp
     case Alphabetically
 }
+
 protocol CustomRangeViewDelegate: AnyObject {
     func didChangedFilterProducts(filterProducts:[Product])
 }
+
 class ListViewController: UIViewController {
     
     var alert:UIAlertController?
@@ -46,6 +48,7 @@ class ListViewController: UIViewController {
         setupConstraints()
         configureNavigationItem()
         dataSource = dataManager.createRandomProduct()
+        sortRecommendation()
         reserverDataSource = dataSource
         setupAlertSorted()
     }
@@ -78,7 +81,9 @@ class ListViewController: UIViewController {
             alert.actions.forEach { action in
                 if action.title == changedAlertAction.rawValue {
                     action.setValue(UIColor.systemGray3, forKey: "titleTextColor")
+                    action.isEnabled = false
                 } else {
+                    action.isEnabled = true
                     action.setValue(UIColor.systemPurple, forKey: "titleTextColor")
                 }
                 
@@ -86,7 +91,6 @@ class ListViewController: UIViewController {
             present(alert, animated: true, completion: nil)
         }
     }
-
 }
 
 extension ListViewController: UITableViewDelegate, UITableViewDataSource {
@@ -98,7 +102,7 @@ extension ListViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
         let separator = " "
-        let combinedStringWithSeparator = [String("\(dataSource[indexPath.row].price!)"), dataSource[indexPath.row].material ?? "", dataSource[indexPath.row].season ?? "", dataSource[indexPath.row].color ?? ""].joined(separator: separator)
+        let combinedStringWithSeparator = [String("\(dataSource[indexPath.row].price!)"), dataSource[indexPath.row].material ?? "", dataSource[indexPath.row].season ?? "", dataSource[indexPath.row].color ?? "", String("\(dataSource[indexPath.row].sortIndex ?? 0)") ].joined(separator: separator)
 
         var contentCell = cell.defaultContentConfiguration()
         
@@ -115,7 +119,19 @@ extension ListViewController: UITableViewDelegate, UITableViewDataSource {
 
 extension ListViewController:CustomRangeViewDelegate {
     func didChangedFilterProducts(filterProducts: [Product]) {
+        
         dataSource = filterProducts
+        
+        switch changedAlertAction {
+        case .Recommendation:
+            sortRecommendation()
+        case .PriceDown:
+            sortPriceDown()
+        case .PriceUp:
+            sortPriceUp()
+        case .Alphabetically:
+            sortAlphabetically()
+        }
     }
 }
 
@@ -130,45 +146,35 @@ extension ListViewController {
         
         let recommendation = UIAlertAction(title: "Recommendation", style: .default) { action in
             self.changedAlertAction = .Recommendation
+            self.sortRecommendation()
             print("recommendation")
-//            if let label = self.alert?.value(forKey: "__representer") as? NSObject,
-//                       let view = label.value(forKey: "label") as? UILabel {
-//                        view.textColor = UIColor.systemGray
-//                    }
+
         }
         
         let priceDown = UIAlertAction(title: "PriceDown", style: .default) { action in
             self.changedAlertAction = .PriceDown
+            self.sortPriceDown()
             print("Price:Down")
-//            if let label = self.alert?.value(forKey: "__representer") as? NSObject,
-//                       let view = label.value(forKey: "label") as? UILabel {
-//                        view.textColor = UIColor.systemGray
-//                    }
+
         }
 
         let priceUp = UIAlertAction(title: "PriceUp", style: .default) { action in
             self.changedAlertAction = .PriceUp
+            self.sortPriceUp()
             print("Price:Up")
-//            if let label = self.alert?.value(forKey: "__representer") as? NSObject,
-//                       let view = label.value(forKey: "label") as? UILabel {
-//                        view.textColor = UIColor.systemGray
-//                    }
+
         }
         
         let alphabetically = UIAlertAction(title: "Alphabetically", style: .default) { action in
-            print("Alphabetically")
             self.changedAlertAction = .Alphabetically
-//            if let label = self.alert?.value(forKey: "__representer") as? NSObject,
-//                       let view = label.value(forKey: "label") as? UILabel {
-//                        view.textColor = UIColor.systemGray
-//                    }
+            self.sortAlphabetically()
+            print("Alphabetically")
         }
         
         let cancel = UIAlertAction(title: "Cancel", style: .cancel) { action in
             
         }
 
-//        recommendation.setValue(UIColor.systemGray4, forKey: "titleTextColor")
         let titleAlertController = NSAttributedString(string: "Add image to avatar", attributes: [NSAttributedString.Key.font : UIFont.boldSystemFont(ofSize: 17)])
         alert?.setValue(titleAlertController, forKey: "attributedTitle")
 
@@ -178,28 +184,46 @@ extension ListViewController {
         alert?.addAction(priceUp)
         alert?.addAction(alphabetically)
         alert?.addAction(cancel)
-
-        
-        
     }
-}
-
-
-class CustomAlertController: UIAlertController {
-
-    var recommendation: UIAlertAction?
-    var priceDown: UIAlertAction?
-    var priceUp: UIAlertAction?
-    var alphabetically: UIAlertAction?
-    var cancel: UIAlertAction?
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
+    func sortAlphabetically() {
+        dataSource.sort { (product1, product2) -> Bool in
+            guard let brand1 = product1.brand, let brand2 = product2.brand else {
+                return false // Обработайте случаи, когда brand равно nil, если это необходимо
+            }
+            return brand1.localizedCaseInsensitiveCompare(brand2) == .orderedAscending
         }
-
-    
     }
+    
+    func sortPriceDown() {
+        dataSource.sort { (product1, product2) -> Bool in
+            guard let price1 = product1.price, let price2 = product2.price else {
+                return false // Обработайте случаи, когда price равно nil, если это необходимо
+            }
+            return price1 > price2
+        }
+    }
+    
+    func sortPriceUp() {
+        dataSource.sort { (product1, product2) -> Bool in
+            guard let price1 = product1.price, let price2 = product2.price else {
+                return false // Обработайте случаи, когда price равно nil, если это необходимо
+            }
+            return price1 < price2
+        }
+    }
+    
+    func sortRecommendation() {
+        dataSource.sort { (product1, product2) -> Bool in
+            guard let price1 = product1.sortIndex, let price2 = product2.sortIndex else {
+                return false // Обработайте случаи, когда price равно nil, если это необходимо
+            }
+            return price1 > price2
+        }
+    }
+    
+    
+}
 
 
 
@@ -310,13 +334,15 @@ class Product {
     var material: String?
     var season: String?
     var price: Int?
+    var sortIndex:Int?
 
-    init(color: String?, brand: String?, material: String?, season: String?, price: Int?) {
+    init(color: String?, brand: String?, material: String?, season: String?, price: Int?, sortIndex:Int?) {
         self.color = color
         self.brand = brand
         self.material = material
         self.season = season
         self.price = price
+        self.sortIndex = sortIndex
     }
 }
 
@@ -327,6 +353,7 @@ class FactoryProducts {
     let brand = ["Nike", "Adidas", "Puma", "Reebok", "QuikSilver", "Boss", "LCWKK", "Marko", "Copertiller"]
     let material = ["Leather", "Artificial Material"]
     let season = ["Summer", "Winter", "Demi-Season"]
+    
 
     var products = [Product]()
 
@@ -338,12 +365,13 @@ class FactoryProducts {
             let randomMaterialIndex = Int.random(in: 0..<material.count)
             let randomSeasonIndex = Int.random(in: 0..<season.count)
             let randomPrice = Int.random(in: 0...999)
+            let sortIndex = Int.random(in: 0...5)
 
             let product = Product(color: color[randomColorIndex],
                                   brand: brand[randomBrandIndex],
                                   material: material[randomMaterialIndex],
                                   season: season[randomSeasonIndex],
-                                  price: randomPrice)
+                                  price: randomPrice, sortIndex: sortIndex)
 
             products.append(product)
         }

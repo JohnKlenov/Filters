@@ -4,7 +4,7 @@
 //
 //  Created by Evgenyi on 14.09.23.
 //
-
+// лдодло
 import UIKit
 
 protocol CustomRangeViewDelegate: AnyObject {

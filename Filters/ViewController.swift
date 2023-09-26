@@ -16,7 +16,7 @@ enum AlertActions:String {
 }
 
 protocol CustomRangeViewDelegate: AnyObject {
-    func didChangedFilterProducts(filterProducts:[Product], isActiveScreenFilter:Bool?, minimumValue: Double?, maximumValue: Double?, lowerValue: Double?, upperValue: Double?, countFilterProduct:Int?, selectedStates: [IndexPath: Bool]?, selectedCell: [Int: [String]]?)
+    func didChangedFilterProducts(filterProducts:[Product], isActiveScreenFilter:Bool?, isFixedPriceProducts:Bool?, minimumValue: Double?, maximumValue: Double?, lowerValue: Double?, upperValue: Double?, countFilterProduct:Int?, selectedStates: [IndexPath: Bool]?, selectedCell: [Int: [String]]?)
 }
 
 class ListViewController: UIViewController {
@@ -42,8 +42,9 @@ class ListViewController: UIViewController {
     var upperValue: Double?
     
     var countFilterProduct:Int?
-    var selectedStates: [IndexPath: Bool] = [:]
-    var selectedCell: [Int: [String]] = [:]
+    var isFixedPriceProducts:Bool?
+    var selectedStates: [IndexPath: Bool]?
+    var selectedCell: [Int: [String]]?
     
     
     // MARK: -
@@ -89,6 +90,17 @@ class ListViewController: UIViewController {
         let customVC = CustomRangeViewController()
         customVC.allProducts = reserverDataSource
         customVC.delegate = self
+        if isActiveScreenFilter {
+            customVC.selectedCell = selectedCell ?? [:]
+            customVC.selectedStates = selectedStates ?? [:]
+            customVC.minimumValue = minimumValue
+            customVC.maximumValue = maximumValue
+            customVC.lowerValue = lowerValue
+            customVC.upperValue = upperValue
+            customVC.countFilterProduct = countFilterProduct
+            customVC.isActiveScreenFilter = isActiveScreenFilter
+            customVC.isFixedPriceProducts = isFixedPriceProducts ?? false
+        }
         let navigationVC = CustomNavigationController(rootViewController: customVC)
         navigationVC.navigationBar.backgroundColor = UIColor.secondarySystemBackground
         navigationVC.modalPresentationStyle = .fullScreen
@@ -138,7 +150,8 @@ extension ListViewController: UITableViewDelegate, UITableViewDataSource {
 }
 
 extension ListViewController:CustomRangeViewDelegate {
-    func didChangedFilterProducts(filterProducts: [Product], isActiveScreenFilter: Bool?, minimumValue: Double?, maximumValue: Double?, lowerValue: Double?, upperValue: Double?, countFilterProduct: Int?, selectedStates: [IndexPath : Bool]?, selectedCell: [Int : [String]]?) {
+    func didChangedFilterProducts(filterProducts: [Product], isActiveScreenFilter: Bool?, isFixedPriceProducts: Bool?, minimumValue: Double?, maximumValue: Double?, lowerValue: Double?, upperValue: Double?, countFilterProduct: Int?, selectedStates: [IndexPath : Bool]?, selectedCell: [Int : [String]]?) {
+        
         dataSource = filterProducts
         
         switch changedAlertAction {
@@ -157,7 +170,54 @@ extension ListViewController:CustomRangeViewDelegate {
         } else {
             navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemPink
         }
+        
+        
+        // MARK: set property for filter -
+        
+        self.isActiveScreenFilter = isActiveScreenFilter ?? false
+        self.minimumValue = minimumValue
+        self.maximumValue = maximumValue
+        self.lowerValue = lowerValue
+        self.upperValue = upperValue
+        self.countFilterProduct = countFilterProduct
+        self.selectedStates = selectedStates
+        self.selectedCell = selectedCell
+        self.isFixedPriceProducts = isFixedPriceProducts
     }
+    
+//    func didChangedFilterProducts(filterProducts: [Product], isActiveScreenFilter: Bool?, minimumValue: Double?, maximumValue: Double?, lowerValue: Double?, upperValue: Double?, countFilterProduct: Int?, selectedStates: [IndexPath : Bool]?, selectedCell: [Int : [String]]?) {
+//        dataSource = filterProducts
+//
+//        switch changedAlertAction {
+//        case .Recommendation:
+//            sortRecommendation()
+//        case .PriceDown:
+//            sortPriceDown()
+//        case .PriceUp:
+//            sortPriceUp()
+//        case .Alphabetically:
+//            sortAlphabetically()
+//        }
+//
+//        if reserverDataSource.count == filterProducts.count {
+//            navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemCyan
+//        } else {
+//            navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemPink
+//        }
+//
+//
+//        // MARK: set property for filter -
+//
+//        self.isActiveScreenFilter = isActiveScreenFilter ?? false
+//        self.minimumValue = minimumValue
+//        self.maximumValue = maximumValue
+//        self.lowerValue = lowerValue
+//        self.upperValue = upperValue
+//        self.countFilterProduct = countFilterProduct
+//        self.selectedStates = selectedStates
+//        self.selectedCell = selectedCell
+//
+//    }
     
 //    func didChangedFilterProducts(filterProducts: [Product]) {
 //        

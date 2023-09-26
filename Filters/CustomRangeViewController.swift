@@ -74,9 +74,12 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
     var selectedStates: [IndexPath: Bool] = [:]
     var selectedCell: [Int: [String]] = [:]
     
+//    var selectedStates: [IndexPath: Bool]?
+//    var selectedCell: [Int: [String]]?
+    
     var isForcedPrice: Bool = false
     var isTouchUpInside:Bool = false
-    var isFixedProducts:Bool = false
+    var isFixedPriceProducts:Bool = false
     
     var firstCountProducts:Int?
     
@@ -192,13 +195,10 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
             customTabBarView.setCounterButton(count: allProducts.count)
             firstCountProducts = allProducts.count
         } else {
-            calculateDataSourceForScreenFilter(products: allProducts)
             customTabBarView.setCounterButton(count: countFilterProduct ?? 0)
             firstCountProducts = nil
+            calculateDataSourceForScreenFilter(products: allProducts)
         }
-        
-//        fixedPriceFilterProducts = allProducts
-//        calculatePriceRange(products: allProducts)
     }
     
     
@@ -219,7 +219,7 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
     
     @objc func rangeSliderTouchUpInside(rangeSlider: RangeSlider) {
         firstCountProducts = nil
-        isFixedProducts = true
+        isFixedPriceProducts = true
         lowerValue = rangeSlider.lowerValue
         upperValue = rangeSlider.upperValue
         fixedPriceFilterProducts = filterProductsUniversal(products: allProducts, color: selectedCell[0], brand: selectedCell[1], material: selectedCell[2], season: selectedCell[3], minPrice: Int(rangeSlider.lowerValue), maxPrice: Int(rangeSlider.upperValue))
@@ -241,7 +241,7 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
         firstCountProducts = allProducts.count
         rangeSlider.isEnabled = true
         isForcedPrice = false
-        isFixedProducts = false
+        isFixedPriceProducts = false
         selectedCell = [:]
         selectedStates = [:]
         customTabBarView.setCounterButton(count: allProducts.count)
@@ -342,8 +342,16 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
                 let sortValue = dataSource[key]?.sorted()
                 dataSource[key] = sortValue
             }
-            if let minimumValue = minimumValue, let maximumValue = maximumValue, let loverValue = lowerValue, let upperValue = upperValue  {
-                configureRangeViewForScreenFilter(minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: loverValue, upperValue: upperValue)
+            if let minimumValue = minimumValue, let maximumValue = maximumValue, let lowerValue = lowerValue, let upperValue = upperValue  {
+                if lowerValue != upperValue {
+                    configureRangeViewForScreenFilter(minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue)
+                } else {
+                    configureRangeViewForScreenFilter(minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: minimumValue, upperValue: maximumValue)
+                    isForcedPrice = true
+                    rangeSlider.isEnabled = false
+                    rangeView.updateLabels(lowerValue: lowerValue, upperValue: upperValue)
+                }
+                
             }
             self.dataSource = dataSource
         }
@@ -547,7 +555,7 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
                 selectedCell[section] = [item]
             }
         
-        if !isFixedProducts {
+        if !isFixedPriceProducts {
             rangeSlider.isEnabled = true
             filterProducts = filterProductsUniversal(products: allProducts, color: selectedCell[0], brand: selectedCell[1], material: selectedCell[2], season: selectedCell[3])
         } else {
@@ -647,19 +655,24 @@ extension CustomRangeViewController: CustomTabBarViewDelegate {
     func customTabBarViewDidTapButton(_ tabBarView: CustomTabBarView) {
         
         if let _ = firstCountProducts {
-            delegate?.didChangedFilterProducts(filterProducts: allProducts, isActiveScreenFilter: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+//            delegate?.didChangedFilterProducts(filterProducts: allProducts, isActiveScreenFilter: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+            delegate?.didChangedFilterProducts(filterProducts: allProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
         } else {
-            if !isFixedProducts {
+            if !isFixedPriceProducts {
                 if filterProducts.count != allProducts.count {
-                    delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: true, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: minimumValue, upperValue: maximumValue, countFilterProduct: countFilterProduct, selectedStates: selectedStates, selectedCell: selectedCell)
+//                    delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: true, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: rangeView.lowerValue, upperValue: rangeView.upperValue, countFilterProduct: filterProducts.count, selectedStates: selectedStates, selectedCell: selectedCell)
+                    delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: true, isFixedPriceProducts: false, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: rangeView.lowerValue, upperValue: rangeView.upperValue, countFilterProduct: filterProducts.count, selectedStates: selectedStates, selectedCell: selectedCell)
                 } else {
-                    delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+//                    delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+                    delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
                 }
             } else {
                 if fixedPriceFilterProducts.count != allProducts.count {
-                    delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: true, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue, countFilterProduct: countFilterProduct, selectedStates: selectedStates, selectedCell: selectedCell)
+//                    delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: true, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue, countFilterProduct: fixedPriceFilterProducts.count, selectedStates: selectedStates, selectedCell: selectedCell)
+                    delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: true, isFixedPriceProducts: true, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue, countFilterProduct: fixedPriceFilterProducts.count, selectedStates: selectedStates, selectedCell: selectedCell)
                 } else {
-                    delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+//                    delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+                    delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: false, isFixedPriceProducts: true, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
                 }
             }
         }
@@ -917,6 +930,9 @@ class RangeView: UIView {
         return view
     }()
     
+    var lowerValue:Double?
+    var upperValue:Double?
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .clear
@@ -964,6 +980,9 @@ class RangeView: UIView {
 //      toLabel.text = "To \(maximumValueString ?? "")"
         fromLabel.text = "\(Int(lowerValue))"
         toLabel.text = "\(Int(upperValue))"
+        self.lowerValue = lowerValue
+        self.upperValue = upperValue
+        
     }
     
 

@@ -16,7 +16,7 @@ enum AlertActions:String {
 }
 
 protocol CustomRangeViewDelegate: AnyObject {
-    func didChangedFilterProducts(filterProducts:[Product])
+    func didChangedFilterProducts(filterProducts:[Product], isActiveScreenFilter:Bool?, minimumValue: Double?, maximumValue: Double?, lowerValue: Double?, upperValue: Double?, countFilterProduct:Int?, selectedStates: [IndexPath: Bool]?, selectedCell: [Int: [String]]?)
 }
 
 class ListViewController: UIViewController {
@@ -31,6 +31,23 @@ class ListViewController: UIViewController {
         }
     }
     var dataManager = FactoryProducts.shared
+    
+    // MARK: property for fixed filter screen -
+    
+    var isActiveScreenFilter:Bool = false
+    
+    var minimumValue: Double?
+    var maximumValue: Double?
+    var lowerValue: Double?
+    var upperValue: Double?
+    
+    var countFilterProduct:Int?
+    var selectedStates: [IndexPath: Bool] = [:]
+    var selectedCell: [Int: [String]] = [:]
+    
+    
+    // MARK: -
+    
     
     let tableView: UITableView = {
         let tableView = UITableView()
@@ -121,8 +138,7 @@ extension ListViewController: UITableViewDelegate, UITableViewDataSource {
 }
 
 extension ListViewController:CustomRangeViewDelegate {
-    func didChangedFilterProducts(filterProducts: [Product]) {
-        
+    func didChangedFilterProducts(filterProducts: [Product], isActiveScreenFilter: Bool?, minimumValue: Double?, maximumValue: Double?, lowerValue: Double?, upperValue: Double?, countFilterProduct: Int?, selectedStates: [IndexPath : Bool]?, selectedCell: [Int : [String]]?) {
         dataSource = filterProducts
         
         switch changedAlertAction {
@@ -142,6 +158,28 @@ extension ListViewController:CustomRangeViewDelegate {
             navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemPink
         }
     }
+    
+//    func didChangedFilterProducts(filterProducts: [Product]) {
+//        
+//        dataSource = filterProducts
+//        
+//        switch changedAlertAction {
+//        case .Recommendation:
+//            sortRecommendation()
+//        case .PriceDown:
+//            sortPriceDown()
+//        case .PriceUp:
+//            sortPriceUp()
+//        case .Alphabetically:
+//            sortAlphabetically()
+//        }
+//        
+//        if reserverDataSource.count == filterProducts.count {
+//            navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemCyan
+//        } else {
+//            navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemPink
+//        }
+//    }
 }
 
 extension ListViewController {

@@ -82,7 +82,20 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
     
     var dataManager = FactoryProducts.shared
     
+    
+    // MARK: property for fixed filter screen -
+    
+    var isActiveScreenFilter:Bool = false
+    
+    var minimumValue: Double?
+    var maximumValue: Double?
+    var lowerValue: Double?
+    var upperValue: Double?
+    
+    var countFilterProduct:Int?
+    
     private let collectionView: UICollectionView = {
+        
         let layout = UserProfileTagsFlowLayout()
         layout.scrollDirection = .vertical
         layout.sectionInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
@@ -174,9 +187,16 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
             customTabBarView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         
-        calculateDataSource(products: allProducts)
-        customTabBarView.setCounterButton(count: allProducts.count)
-        firstCountProducts = allProducts.count
+        if !isActiveScreenFilter {
+            calculateDataSource(products: allProducts)
+            customTabBarView.setCounterButton(count: allProducts.count)
+            firstCountProducts = allProducts.count
+        } else {
+            calculateDataSourceForScreenFilter(products: allProducts)
+            customTabBarView.setCounterButton(count: countFilterProduct ?? 0)
+            firstCountProducts = nil
+        }
+        
 //        fixedPriceFilterProducts = allProducts
 //        calculatePriceRange(products: allProducts)
     }
@@ -200,6 +220,8 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
     @objc func rangeSliderTouchUpInside(rangeSlider: RangeSlider) {
         firstCountProducts = nil
         isFixedProducts = true
+        lowerValue = rangeSlider.lowerValue
+        upperValue = rangeSlider.upperValue
         fixedPriceFilterProducts = filterProductsUniversal(products: allProducts, color: selectedCell[0], brand: selectedCell[1], material: selectedCell[2], season: selectedCell[3], minPrice: Int(rangeSlider.lowerValue), maxPrice: Int(rangeSlider.upperValue))
     }
     
@@ -211,6 +233,11 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
     }
     
     @objc func didTapResetButton() {
+        //        minimumValue = nil
+        //        maximumValue = nil
+        //        isActiveScreenFilter = false
+        //    lowerValue = nil
+        //    upperValue = nil
         firstCountProducts = allProducts.count
         rangeSlider.isEnabled = true
         isForcedPrice = false
@@ -235,10 +262,13 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
         rangeSlider.maximumValue = maximumValue
         rangeSlider.lowerValue = minimumValue
         rangeSlider.upperValue = maximumValue
-//        rangeSlider.minimumValue = 0.0
-//        rangeSlider.maximumValue = 100.0
-//        rangeSlider.lowerValue = 10.0
-//        rangeSlider.upperValue = 70.0
+    }
+    
+    private func configureRangeViewForScreenFilter(minimumValue:Double, maximumValue:Double, lowerValue:Double, upperValue:Double ) {
+        rangeSlider.minimumValue = minimumValue
+        rangeSlider.maximumValue = maximumValue
+        rangeSlider.lowerValue = lowerValue
+        rangeSlider.upperValue = upperValue
     }
     
     private func calculateDataSource(products: [Product]) {
@@ -278,8 +308,43 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
                 let sortValue = dataSource[key]?.sorted()
                 dataSource[key] = sortValue
             }
+            minimumValue = Double(minPrice)
+            maximumValue = Double(maxPrice)
             configureRangeView(minimumValue: Double(minPrice), maximumValue: Double(maxPrice))
 //            rangeView.updateLabels(lowerValue: rangeSlider.lowerValue, upperValue: rangeSlider.upperValue)
+            self.dataSource = dataSource
+        }
+    }
+    
+    private func calculateDataSourceForScreenFilter(products: [Product]) {
+
+        var dataSource = [String: [String]]()
+        var counter = 0
+        for product in products {
+            counter+=1
+            if let color = product.color {
+                dataSource["color", default: []].append(color)
+            }
+            if let brand = product.brand {
+                dataSource["brand", default: []].append(brand)
+            }
+            if let material = product.material {
+                dataSource["material", default: []].append(material)
+            }
+            if let season = product.season {
+                dataSource["season", default: []].append(season)
+            }
+        }
+        if counter == products.count {
+            for key in dataSource.keys {
+                let values = Set(dataSource[key]!)
+                dataSource[key] = Array(values)
+                let sortValue = dataSource[key]?.sorted()
+                dataSource[key] = sortValue
+            }
+            if let minimumValue = minimumValue, let maximumValue = maximumValue, let loverValue = lowerValue, let upperValue = upperValue  {
+                configureRangeViewForScreenFilter(minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: loverValue, upperValue: upperValue)
+            }
             self.dataSource = dataSource
         }
     }
@@ -580,21 +645,31 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
 
 extension CustomRangeViewController: CustomTabBarViewDelegate {
     func customTabBarViewDidTapButton(_ tabBarView: CustomTabBarView) {
-        // Ваш код обработки нажатия на кнопку
-        print("customTabBarViewDidTapButton")
         
-        // если 0 кнопка должна быть не активна
         if let _ = firstCountProducts {
-            delegate?.didChangedFilterProducts(filterProducts: allProducts)
+            delegate?.didChangedFilterProducts(filterProducts: allProducts, isActiveScreenFilter: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
         } else {
             if !isFixedProducts {
-                delegate?.didChangedFilterProducts(filterProducts: filterProducts)
+                if filterProducts.count != allProducts.count {
+                    delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: true, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: minimumValue, upperValue: maximumValue, countFilterProduct: countFilterProduct, selectedStates: selectedStates, selectedCell: selectedCell)
+                } else {
+                    delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+                }
             } else {
-                delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts)
+                if fixedPriceFilterProducts.count != allProducts.count {
+                    delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: true, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue, countFilterProduct: countFilterProduct, selectedStates: selectedStates, selectedCell: selectedCell)
+                } else {
+                    delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+                }
             }
         }
         
         self.dismiss(animated: true, completion: nil)
+    }
+    
+    func returnAllSet() {
+        
+//        delegate?.returnAllSet(selectedCell: selectedStates: minimumValue: maximumValue: lowerValue: upperValue: countFilterProduct: isActiveScreenFilter: true)
     }
 }
 

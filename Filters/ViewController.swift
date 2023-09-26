@@ -42,6 +42,7 @@ class ListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .clear
+        view.tintColor = .systemCyan
         tableView.delegate = self
         tableView.dataSource = self
         view.addSubview(tableView)
@@ -61,7 +62,9 @@ class ListViewController: UIViewController {
         
         // Создание кнопок
         let filterButton = UIBarButtonItem(image: UIImage(systemName: "line.horizontal.3.decrease"), style: .plain, target: self, action: #selector(filterButtonTapped))
+        filterButton.tintColor = UIColor.systemCyan
         let sortedButton = UIBarButtonItem(image: UIImage(systemName: "arrow.up.arrow.down"), style: .plain, target: self, action: #selector(sortedButtonTapped))
+        sortedButton.tintColor = UIColor.systemCyan
         navigationItem.rightBarButtonItems = [sortedButton, filterButton]
     }
     
@@ -84,7 +87,7 @@ class ListViewController: UIViewController {
                     action.isEnabled = false
                 } else {
                     action.isEnabled = true
-                    action.setValue(UIColor.systemPurple, forKey: "titleTextColor")
+                    action.setValue(UIColor.systemCyan, forKey: "titleTextColor")
                 }
                 
             }
@@ -132,6 +135,12 @@ extension ListViewController:CustomRangeViewDelegate {
         case .Alphabetically:
             sortAlphabetically()
         }
+        
+        if reserverDataSource.count == filterProducts.count {
+            navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemCyan
+        } else {
+            navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemPink
+        }
     }
 }
 
@@ -145,30 +154,27 @@ extension ListViewController {
         
         
         let recommendation = UIAlertAction(title: "Recommendation", style: .default) { action in
+            self.navigationItem.rightBarButtonItems?[0].tintColor = action.isEnabled ? UIColor.systemCyan : UIColor.systemPink
             self.changedAlertAction = .Recommendation
             self.sortRecommendation()
-            print("recommendation")
-
         }
         
         let priceDown = UIAlertAction(title: "PriceDown", style: .default) { action in
+            self.navigationItem.rightBarButtonItems?[0].tintColor = action.isEnabled ? UIColor.systemPink : UIColor.systemCyan
             self.changedAlertAction = .PriceDown
             self.sortPriceDown()
-            print("Price:Down")
-
         }
 
         let priceUp = UIAlertAction(title: "PriceUp", style: .default) { action in
+            self.navigationItem.rightBarButtonItems?[0].tintColor = action.isEnabled ? UIColor.systemPink : UIColor.systemCyan
             self.changedAlertAction = .PriceUp
             self.sortPriceUp()
-            print("Price:Up")
-
         }
         
         let alphabetically = UIAlertAction(title: "Alphabetically", style: .default) { action in
+            self.navigationItem.rightBarButtonItems?[0].tintColor = action.isEnabled ? UIColor.systemPink : UIColor.systemCyan
             self.changedAlertAction = .Alphabetically
             self.sortAlphabetically()
-            print("Alphabetically")
         }
         
         let cancel = UIAlertAction(title: "Cancel", style: .cancel) { action in

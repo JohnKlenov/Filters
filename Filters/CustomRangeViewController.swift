@@ -79,10 +79,6 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
     var isFixedProducts:Bool = false
     
     var firstCountProducts:Int?
-//    var stateFilter: StateFilters = .firstStart
-    
-//    var firstMinPrice :Int?
-//    var firstMaxPrice :Int?
     
     var dataManager = FactoryProducts.shared
     
@@ -210,7 +206,7 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
     
     @objc func didTapCloseButton() {
         
-        delegate?.didChangedFilterProducts(filterProducts: allProducts)
+//        delegate?.didChangedFilterProducts(filterProducts: allProducts)
         self.dismiss(animated: true, completion: nil)
     }
     
@@ -239,6 +235,10 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
         rangeSlider.maximumValue = maximumValue
         rangeSlider.lowerValue = minimumValue
         rangeSlider.upperValue = maximumValue
+//        rangeSlider.minimumValue = 0.0
+//        rangeSlider.maximumValue = 100.0
+//        rangeSlider.lowerValue = 10.0
+//        rangeSlider.upperValue = 70.0
     }
     
     private func calculateDataSource(products: [Product]) {

@@ -12,28 +12,28 @@ class RangeSlider: UIControl {
 
     var minimumValue: Double = 0 {
         didSet {
-            print("minimumValue - \(minimumValue)")
+//            print("minimumValue - \(minimumValue)")
             updateLayerFrames()
         }
     }
     
     var maximumValue: Double = 100 {
         didSet {
-            print("maximumValue - \(maximumValue)")
+//            print("maximumValue - \(maximumValue)")
             updateLayerFrames()
         }
     }
     
     var lowerValue: Double = 0 {
         didSet {
-            print("lowerValue - \(lowerValue)")
+//            print("lowerValue - \(lowerValue)")
             updateLayerFrames()
         }
     }
     
     var upperValue: Double = 100 {
         didSet {
-            print("upperValue - \(upperValue)")
+//            print("upperValue - \(upperValue)")
             updateLayerFrames()
         }
     }

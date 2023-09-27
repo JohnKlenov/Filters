@@ -172,7 +172,7 @@ extension ListViewController:CustomRangeViewDelegate {
         }
         
         
-        // MARK: set property for filter -
+        // MARK: set property for filter or reset filter -
         
         self.isActiveScreenFilter = isActiveScreenFilter ?? false
         self.minimumValue = minimumValue
@@ -279,7 +279,7 @@ extension ListViewController {
             
         }
 
-        let titleAlertController = NSAttributedString(string: "Add image to avatar", attributes: [NSAttributedString.Key.font : UIFont.boldSystemFont(ofSize: 17)])
+        let titleAlertController = NSAttributedString(string: "Sort by", attributes: [NSAttributedString.Key.font : UIFont.boldSystemFont(ofSize: 17)])
         alert?.setValue(titleAlertController, forKey: "attributedTitle")
 
         

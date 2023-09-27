@@ -31,11 +31,11 @@
 
 import UIKit
 
-//enum StateFilters {
-//    case cell
-//    case slider
-//    case firstStart
-//}
+enum StateFirstStart {
+    case nul
+    case reset
+    case firstStart
+}
 
 protocol CustomTabBarViewDelegate: AnyObject {
     func customTabBarViewDidTapButton(_ tabBarView: CustomTabBarView)
@@ -53,14 +53,11 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
         didSet {
             customTabBarView.setCounterButton(count: filterProducts.count)
             if filterProducts.isEmpty {
-                print("filterProducts.isEmpty")
-//                isTouchUpInside = false
                 isForcedPrice = true
                 rangeSlider.isEnabled = false
                 rangeView.updateLabels(lowerValue: 0, upperValue: 0)
             } else {
-                    print("calculatePriceForFilterProducts did")
-                    calculatePriceForFilterProducts(products: filterProducts)
+                calculatePriceForFilterProducts(products: filterProducts)
             }
         }
     }
@@ -70,25 +67,21 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
             customTabBarView.setCounterButton(count: fixedPriceFilterProducts.count)
         }
     }
-    
+    var stateReturnFilterProduct: StateFirstStart = .nul
     var selectedStates: [IndexPath: Bool] = [:]
     var selectedCell: [Int: [String]] = [:]
-    
-//    var selectedStates: [IndexPath: Bool]?
-//    var selectedCell: [Int: [String]]?
-    
+
     var isForcedPrice: Bool = false
-    var isTouchUpInside:Bool = false
     var isFixedPriceProducts:Bool = false
     
-    var firstCountProducts:Int?
+//    var firstCountProducts:Int?
     
     var dataManager = FactoryProducts.shared
-    
     
     // MARK: property for fixed filter screen -
     
     var isActiveScreenFilter:Bool = false
+//    var isResetFilters:Bool = false
     
     var minimumValue: Double?
     var maximumValue: Double?
@@ -96,6 +89,8 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
     var upperValue: Double?
     
     var countFilterProduct:Int?
+    
+    // MARK: -
     
     private let collectionView: UICollectionView = {
         
@@ -171,7 +166,6 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
         view.addSubview(customTabBarView)
         configureNavigationBar(largeTitleColor: UIColor.label, backgoundColor: UIColor.secondarySystemBackground, tintColor: UIColor.label, title: "Filters", preferredLargeTitle: false)
         configureNavigationItem()
-//        configureRangeView(minimumValue: 135, maximumValue: 745)
         rangeSlider.addTarget(self, action: #selector(rangeSliderValueChanged(rangeSlider:)), for: .valueChanged)
         rangeSlider.addTarget(self, action: #selector(rangeSliderTouchUpInside(rangeSlider:)), for: .touchUpInside)
 
@@ -193,10 +187,13 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
         if !isActiveScreenFilter {
             calculateDataSource(products: allProducts)
             customTabBarView.setCounterButton(count: allProducts.count)
-            firstCountProducts = allProducts.count
+//            firstCountProducts = allProducts.count
+            stateReturnFilterProduct = .firstStart
         } else {
             customTabBarView.setCounterButton(count: countFilterProduct ?? 0)
-            firstCountProducts = nil
+            // firstCountProducts = nil - you can not set the value to nil
+//            firstCountProducts = countFilterProduct
+            stateReturnFilterProduct = .firstStart
             calculateDataSourceForScreenFilter(products: allProducts)
         }
     }
@@ -218,7 +215,8 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
     }
     
     @objc func rangeSliderTouchUpInside(rangeSlider: RangeSlider) {
-        firstCountProducts = nil
+//        firstCountProducts = nil
+        stateReturnFilterProduct = .nul
         isFixedPriceProducts = true
         lowerValue = rangeSlider.lowerValue
         upperValue = rangeSlider.upperValue
@@ -228,22 +226,28 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
     
     @objc func didTapCloseButton() {
         
-//        delegate?.didChangedFilterProducts(filterProducts: allProducts)
+        if stateReturnFilterProduct == .reset {
+            delegate?.didChangedFilterProducts(filterProducts: allProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+        }
         self.dismiss(animated: true, completion: nil)
     }
     
     @objc func didTapResetButton() {
-        //        minimumValue = nil
-        //        maximumValue = nil
-        //        isActiveScreenFilter = false
-        //    lowerValue = nil
-        //    upperValue = nil
-        firstCountProducts = allProducts.count
+        
+        // we must inform the close button that the settings have been reset
+        stateReturnFilterProduct = .reset
+        isActiveScreenFilter = false
+        countFilterProduct = nil
+        minimumValue = nil
+        maximumValue = nil
+        lowerValue = nil
+        upperValue = nil
         rangeSlider.isEnabled = true
         isForcedPrice = false
         isFixedPriceProducts = false
         selectedCell = [:]
         selectedStates = [:]
+        
         customTabBarView.setCounterButton(count: allProducts.count)
         calculatePriceForFilterProducts(products: allProducts)
         collectionView.reloadData()
@@ -311,7 +315,6 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
             minimumValue = Double(minPrice)
             maximumValue = Double(maxPrice)
             configureRangeView(minimumValue: Double(minPrice), maximumValue: Double(maxPrice))
-//            rangeView.updateLabels(lowerValue: rangeSlider.lowerValue, upperValue: rangeSlider.upperValue)
             self.dataSource = dataSource
         }
     }
@@ -356,33 +359,6 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
             self.dataSource = dataSource
         }
     }
-    
-//    private func calculatePriceRange(products: [Product]) {
-//        var minPrice = Int.max
-//        var maxPrice = Int.min
-//
-//        var counter = 0
-//        for product in products {
-//            counter+=1
-//
-//            if let price = product.price {
-//
-//                if price < minPrice {
-//                    minPrice = price
-//                }
-//                if price > maxPrice {
-//                    maxPrice = price
-//                }
-//            }
-//        }
-//
-//        if counter == products.count {
-//            print("minimumValue - \(minPrice)")
-//            print("maximumValue - \(maxPrice)")
-//            firstMinPrice = minPrice
-//            firstMaxPrice = maxPrice
-//        }
-//    }
 
     private func calculatePriceForFilterProducts(products: [Product]) {
         
@@ -406,12 +382,9 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
         }
         
         if counter == products.count {
-            print("minimumValue - \(minPrice)")
-            print("maximumValue - \(maxPrice)")
             if minPrice != maxPrice {
                 configureRangeView(minimumValue: Double(minPrice), maximumValue: Double(maxPrice))
             } else {
-                print("minPrice == maxPrice")
                 isForcedPrice = true
                 rangeSlider.isEnabled = false
                 rangeView.updateLabels(lowerValue: Double(minPrice), upperValue: Double(maxPrice))
@@ -466,16 +439,12 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
         switch section {
         case 0:
             return dataSource["color"]?.count ?? 0
-//            return colors.count
         case 1:
             return dataSource["brand"]?.count ?? 0
-//            return brands.count
         case 2:
             return dataSource["material"]?.count ?? 0
-//            return material.count
         case 3:
             return dataSource["season"]?.count ?? 0
-//            return season.count
         default:
             print("Returned message for analytic FB Crashlytics error")
             return 0
@@ -499,19 +468,15 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
         case 0:
             let colors = dataSource["color"]
             cell.label.text = colors?[indexPath.row]
-//            cell.label.text = colors[indexPath.row]
         case 1:
             let brands = dataSource["brand"]
             cell.label.text = brands?[indexPath.row]
-//            cell.label.text = brands[indexPath.row]
         case 2:
             let material = dataSource["material"]
             cell.label.text = material?[indexPath.row]
-//            cell.label.text = material[indexPath.row]
         case 3:
             let season = dataSource["season"]
             cell.label.text = season?[indexPath.row]
-//            cell.label.text = season[indexPath.row]
         default:
             print("Returned message for analytic FB Crashlytics error")
         }
@@ -521,7 +486,8 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         
-        firstCountProducts = nil
+//        firstCountProducts = nil
+        stateReturnFilterProduct = .nul
         isForcedPrice = false
         
         if selectedStates[indexPath] == true {
@@ -583,29 +549,22 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
         case 0:
             let colors = dataSource["color"]
             cell?.label.text = colors?[indexPath.row]
-//            cell?.label.text = colors[indexPath.row]
             //             Определяем размеры метки с помощью метода sizeThatFits()
             labelSize = cell?.label.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)) ?? .zero
             labelSize = CGSize(width: labelSize.width + 20, height: labelSize.height + 20)
         case 1:
             let brands = dataSource["brand"]
             cell?.label.text = brands?[indexPath.row]
-//            cell?.label.text = brands[indexPath.row]
-            //             Определяем размеры метки с помощью метода sizeThatFits()
             labelSize = cell?.label.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)) ?? .zero
             labelSize = CGSize(width: labelSize.width + 20, height: labelSize.height + 20)
         case 2:
             let material = dataSource["material"]
             cell?.label.text = material?[indexPath.row]
-//            cell?.label.text = material[indexPath.row]
-            //             Определяем размеры метки с помощью метода sizeThatFits()
             labelSize = cell?.label.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)) ?? .zero
             labelSize = CGSize(width: labelSize.width + 20, height: labelSize.height + 20)
         case 3:
             let season = dataSource["season"]
             cell?.label.text = season?[indexPath.row]
-//            cell?.label.text = season[indexPath.row]
-            //             Определяем размеры метки с помощью метода sizeThatFits()
             labelSize = cell?.label.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)) ?? .zero
             labelSize = CGSize(width: labelSize.width + 20, height: labelSize.height + 20)
         default:
@@ -649,40 +608,43 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
         
         return CGSize(width: width, height: height)
     }
+    
+    deinit {
+        print("deinit CustomRangeViewController")
+    }
 }
 
 extension CustomRangeViewController: CustomTabBarViewDelegate {
     func customTabBarViewDidTapButton(_ tabBarView: CustomTabBarView) {
         
-        if let _ = firstCountProducts {
-//            delegate?.didChangedFilterProducts(filterProducts: allProducts, isActiveScreenFilter: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+        switch stateReturnFilterProduct {
+            
+        case .nul:
+            returnFilterProducts()
+        case .reset:
             delegate?.didChangedFilterProducts(filterProducts: allProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
-        } else {
-            if !isFixedPriceProducts {
-                if filterProducts.count != allProducts.count {
-//                    delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: true, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: rangeView.lowerValue, upperValue: rangeView.upperValue, countFilterProduct: filterProducts.count, selectedStates: selectedStates, selectedCell: selectedCell)
-                    delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: true, isFixedPriceProducts: false, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: rangeView.lowerValue, upperValue: rangeView.upperValue, countFilterProduct: filterProducts.count, selectedStates: selectedStates, selectedCell: selectedCell)
-                } else {
-//                    delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
-                    delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
-                }
-            } else {
-                if fixedPriceFilterProducts.count != allProducts.count {
-//                    delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: true, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue, countFilterProduct: fixedPriceFilterProducts.count, selectedStates: selectedStates, selectedCell: selectedCell)
-                    delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: true, isFixedPriceProducts: true, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue, countFilterProduct: fixedPriceFilterProducts.count, selectedStates: selectedStates, selectedCell: selectedCell)
-                } else {
-//                    delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
-                    delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: false, isFixedPriceProducts: true, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
-                }
-            }
+        case .firstStart:
+            break
         }
-        
+
         self.dismiss(animated: true, completion: nil)
     }
     
-    func returnAllSet() {
-        
-//        delegate?.returnAllSet(selectedCell: selectedStates: minimumValue: maximumValue: lowerValue: upperValue: countFilterProduct: isActiveScreenFilter: true)
+    func returnFilterProducts() {
+        if !isFixedPriceProducts {
+            if filterProducts.count != allProducts.count {
+                delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: true, isFixedPriceProducts: false, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: rangeView.lowerValue, upperValue: rangeView.upperValue, countFilterProduct: filterProducts.count, selectedStates: selectedStates, selectedCell: selectedCell)
+            } else {
+                delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+            }
+        } else {
+            if fixedPriceFilterProducts.count != allProducts.count {
+                print("fixedPriceFilterProducts - \(fixedPriceFilterProducts)")
+                delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: true, isFixedPriceProducts: true, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue, countFilterProduct: fixedPriceFilterProducts.count, selectedStates: selectedStates, selectedCell: selectedCell)
+            } else {
+                delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: false, isFixedPriceProducts: true, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+            }
+        }
     }
 }
 
@@ -992,6 +954,52 @@ class RangeView: UIView {
     }
 }
 
+//        if let _ = firstCountProducts {
+//            // если not nil то это хорошо работает для первого посещения с VC но
+//            delegate?.didChangedFilterProducts(filterProducts: allProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+//        } else {
+//            if !isFixedPriceProducts {
+//                if filterProducts.count != allProducts.count {
+//                    delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: true, isFixedPriceProducts: false, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: rangeView.lowerValue, upperValue: rangeView.upperValue, countFilterProduct: filterProducts.count, selectedStates: selectedStates, selectedCell: selectedCell)
+//                } else {
+//                    delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+//                }
+//            } else {
+//                if fixedPriceFilterProducts.count != allProducts.count {
+//                    print("fixedPriceFilterProducts - \(fixedPriceFilterProducts)")
+//                    delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: true, isFixedPriceProducts: true, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue, countFilterProduct: fixedPriceFilterProducts.count, selectedStates: selectedStates, selectedCell: selectedCell)
+//                } else {
+//                    delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: false, isFixedPriceProducts: true, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+//                }
+//            }
+//        }
+
+//    private func calculatePriceRange(products: [Product]) {
+//        var minPrice = Int.max
+//        var maxPrice = Int.min
+//
+//        var counter = 0
+//        for product in products {
+//            counter+=1
+//
+//            if let price = product.price {
+//
+//                if price < minPrice {
+//                    minPrice = price
+//                }
+//                if price > maxPrice {
+//                    maxPrice = price
+//                }
+//            }
+//        }
+//
+//        if counter == products.count {
+//            print("minimumValue - \(minPrice)")
+//            print("maximumValue - \(maxPrice)")
+//            firstMinPrice = minPrice
+//            firstMaxPrice = maxPrice
+//        }
+//    }
 
 //    func filterProducts(products: [Product], color: String? = nil, brand: String? = nil, material: String? = nil, season: String? = nil) -> [Product] {
 //        let filteredProducts = products.filter { product in

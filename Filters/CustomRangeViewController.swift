@@ -533,7 +533,8 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
                collectionView.reloadItems(at: [indexPath])
            }
 
-        print("didSelectItemAt - \(selectedCell)")
+        print("selectedCell - \(selectedCell)")
+        print("selectedStates - \(selectedStates)")
     }
     
     

@@ -25,11 +25,18 @@ class ListViewController: UIViewController {
     var changedAlertAction:AlertActions = .Recommendation
     
     var reserverDataSource: [Product] = []
-    var dataSource: [Product] = [] {
+    var dataSourceTableView: [Product] = [] {
         didSet {
             tableView.reloadData()
         }
     }
+    
+    var dataSourceCollectionView: [String] = [] {
+        didSet {
+            collectionView.reloadData()
+        }
+    }
+    
     var dataManager = FactoryProducts.shared
     
     // MARK: property for fixed filter screen -
@@ -43,12 +50,31 @@ class ListViewController: UIViewController {
     
     var countFilterProduct:Int?
     var isFixedPriceProducts:Bool?
+    // отсюда мы сформируем контент для collectionView и при каждом удалении cell мы будем из него удалять значение
+    // selectedCell - [2: ["Leather", "Artificial Material"], 1: ["LCWKK"], 0: ["Bright"]]
+    //    selectedStates - [[2, 0]: true, [1, 2]: false, [0, 0]: true, [2, 1]: true, [1, 1]: true]
+    // так же мы должны удалять значения из selectedStates
+    // filterProductsUniversal(products: allProducts, color: selectedCell[0], brand: selectedCell[1], material: selectedCell[2], season: selectedCell[3], minPrice: Int(rangeSlider.lowerValue), maxPrice: Int(rangeSlider.upperValue))
+    // затем мы должны каждый раз вызывать func filterProductsUniversal и обновлять этими данными таблицу
+    
+    // появилась мысль вынести всю сущность фильтр в один менеджер
+
     var selectedStates: [IndexPath: Bool]?
     var selectedCell: [Int: [String]]?
     
+    var heightCnstrCollectionView: NSLayoutConstraint!
     
     // MARK: -
     
+    private let collectionView: UICollectionView = {
+        
+        let layout = UserProfileTagsFlowLayout()
+        layout.scrollDirection = .vertical
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        return collectionView
+    }()
     
     let tableView: UITableView = {
         let tableView = UITableView()
@@ -59,21 +85,57 @@ class ListViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         view.backgroundColor = .clear
         view.tintColor = .systemCyan
+        
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        collectionView.register(FilterCell.self, forCellWithReuseIdentifier: "filterCell")
+        heightCnstrCollectionView = collectionView.heightAnchor.constraint(equalToConstant: 0)
+        heightCnstrCollectionView.isActive = true
+        collectionView.backgroundColor = .systemPink
+        view.addSubview(collectionView)
+        
         tableView.delegate = self
         tableView.dataSource = self
         view.addSubview(tableView)
+        
         setupConstraints()
         configureNavigationItem()
-        dataSource = dataManager.createRandomProduct()
+        dataSourceTableView = dataManager.createRandomProduct()
+        dataSourceCollectionView = ["DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD"]
+//        ["DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD"]
+//        "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT"
+//
         sortRecommendation()
-        reserverDataSource = dataSource
+        reserverDataSource = dataSourceTableView
         setupAlertSorted()
     }
     
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        print("collectionView.contentSize.height - \(collectionView.contentSize.height)")
+        if Int(collectionView.collectionViewLayout.collectionViewContentSize.height) == 0 {
+            heightCnstrCollectionView.constant = collectionView.frame.height
+            
+            
+        } else {
+            heightCnstrCollectionView.constant = collectionView.collectionViewLayout.collectionViewContentSize.height
+        }
+    }
+    
     private func setupConstraints() {
-        NSLayoutConstraint.activate([tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0), tableView.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor, constant: 0), tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: 0), tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 0)])
+//        , collectionView.heightAnchor.constraint(equalToConstant: collectionView.contentSize.height)
+        NSLayoutConstraint.activate([
+            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0),
+            collectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 0),
+            collectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: 0),
+            collectionView.bottomAnchor.constraint(equalTo: tableView.topAnchor)
+        ])
+//        collectionView.bottomAnchor
+        NSLayoutConstraint.activate([tableView.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 0), tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 0), tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: 0), tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 0)])
+        
     }
     
     private func configureNavigationItem() {
@@ -128,17 +190,17 @@ class ListViewController: UIViewController {
 extension ListViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        dataSource.count
+        dataSourceTableView.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
         let separator = " "
-        let combinedStringWithSeparator = [String("\(dataSource[indexPath.row].price!)"), dataSource[indexPath.row].material ?? "", dataSource[indexPath.row].season ?? "", dataSource[indexPath.row].color ?? "", String("\(dataSource[indexPath.row].sortIndex ?? 0)") ].joined(separator: separator)
+        let combinedStringWithSeparator = [String("\(dataSourceTableView[indexPath.row].price!)"), dataSourceTableView[indexPath.row].material ?? "", dataSourceTableView[indexPath.row].season ?? "", dataSourceTableView[indexPath.row].color ?? "", String("\(dataSourceTableView[indexPath.row].sortIndex ?? 0)") ].joined(separator: separator)
 
         var contentCell = cell.defaultContentConfiguration()
         
-        contentCell.text = dataSource[indexPath.row].brand
+        contentCell.text = dataSourceTableView[indexPath.row].brand
         contentCell.secondaryText = combinedStringWithSeparator
         contentCell.image = UIImage(systemName: "swift")
         contentCell.textProperties.font = UIFont.systemFont(ofSize: 17, weight: .regular)
@@ -147,12 +209,73 @@ extension ListViewController: UITableViewDelegate, UITableViewDataSource {
         cell.contentConfiguration = contentCell
         return cell
     }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+//        collectionView.reloadData()
+    }
+}
+
+extension ListViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        dataSourceCollectionView.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+       
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "filterCell", for: indexPath) as? FilterCell else {
+            return UICollectionViewCell()
+        }
+        
+        cell.label.text = dataSourceCollectionView[indexPath.row]
+        return cell
+    }
+    
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        
+        var labelSize = CGSize()
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 17)
+        label.textAlignment = .center
+        label.textColor = UIColor.label
+        label.text = dataSourceCollectionView[indexPath.item]
+        
+        labelSize = label.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude))
+        labelSize = CGSize(width: labelSize.width + 20, height: labelSize.height + 20)
+        return labelSize
+//        let font = UIFont.systemFont(ofSize: 17)
+//        let text = dataSourceCollectionView[indexPath.row] // Получаем текст из вашего массива данных
+//            let textBoundingSize = NSString(string: text).boundingRect(with: CGSize(width: 10, height: CGFloat.greatestFiniteMagnitude), options: .usesLineFragmentOrigin, attributes: [NSAttributedString.Key.font: font], context: nil).size // Рассчитываем ограничивающий прямоугольник на основе текста
+//
+//            return CGSize(width: textBoundingSize.width, height: textBoundingSize.height) // Возвращаем размеры ячейки с учетом паддингов
+
+
+//        return CGSize(width: 50, height: 25)
+    }
+    
+//    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+//
+//        var labelSize = CGSize()
+//        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "filterCell", for: indexPath) as? FilterCell
+//
+//        cell?.label.text = dataSourceCollectionView[indexPath.item]
+//        labelSize = cell?.label.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)) ?? .zero
+//////        if labelSize != .zero {
+//////            labelSize = CGSize(width: labelSize.width + 20, height: labelSize.height + 20)
+//////        }
+//        labelSize = CGSize(width: labelSize.width + 20, height: labelSize.height + 20)
+////        return CGSize(width: 50, height: 25)
+//        return labelSize
+//    }
+    
+    
 }
 
 extension ListViewController:CustomRangeViewDelegate {
     func didChangedFilterProducts(filterProducts: [Product], isActiveScreenFilter: Bool?, isFixedPriceProducts: Bool?, minimumValue: Double?, maximumValue: Double?, lowerValue: Double?, upperValue: Double?, countFilterProduct: Int?, selectedStates: [IndexPath : Bool]?, selectedCell: [Int : [String]]?) {
         
-        dataSource = filterProducts
+        dataSourceTableView = filterProducts
         
         switch changedAlertAction {
         case .Recommendation:
@@ -184,62 +307,6 @@ extension ListViewController:CustomRangeViewDelegate {
         self.selectedCell = selectedCell
         self.isFixedPriceProducts = isFixedPriceProducts
     }
-    
-//    func didChangedFilterProducts(filterProducts: [Product], isActiveScreenFilter: Bool?, minimumValue: Double?, maximumValue: Double?, lowerValue: Double?, upperValue: Double?, countFilterProduct: Int?, selectedStates: [IndexPath : Bool]?, selectedCell: [Int : [String]]?) {
-//        dataSource = filterProducts
-//
-//        switch changedAlertAction {
-//        case .Recommendation:
-//            sortRecommendation()
-//        case .PriceDown:
-//            sortPriceDown()
-//        case .PriceUp:
-//            sortPriceUp()
-//        case .Alphabetically:
-//            sortAlphabetically()
-//        }
-//
-//        if reserverDataSource.count == filterProducts.count {
-//            navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemCyan
-//        } else {
-//            navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemPink
-//        }
-//
-//
-//        // MARK: set property for filter -
-//
-//        self.isActiveScreenFilter = isActiveScreenFilter ?? false
-//        self.minimumValue = minimumValue
-//        self.maximumValue = maximumValue
-//        self.lowerValue = lowerValue
-//        self.upperValue = upperValue
-//        self.countFilterProduct = countFilterProduct
-//        self.selectedStates = selectedStates
-//        self.selectedCell = selectedCell
-//
-//    }
-    
-//    func didChangedFilterProducts(filterProducts: [Product]) {
-//        
-//        dataSource = filterProducts
-//        
-//        switch changedAlertAction {
-//        case .Recommendation:
-//            sortRecommendation()
-//        case .PriceDown:
-//            sortPriceDown()
-//        case .PriceUp:
-//            sortPriceUp()
-//        case .Alphabetically:
-//            sortAlphabetically()
-//        }
-//        
-//        if reserverDataSource.count == filterProducts.count {
-//            navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemCyan
-//        } else {
-//            navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemPink
-//        }
-//    }
 }
 
 extension ListViewController {
@@ -291,7 +358,7 @@ extension ListViewController {
     }
     
     func sortAlphabetically() {
-        dataSource.sort { (product1, product2) -> Bool in
+        dataSourceTableView.sort { (product1, product2) -> Bool in
             guard let brand1 = product1.brand, let brand2 = product2.brand else {
                 return false // Обработайте случаи, когда brand равно nil, если это необходимо
             }
@@ -300,7 +367,7 @@ extension ListViewController {
     }
     
     func sortPriceDown() {
-        dataSource.sort { (product1, product2) -> Bool in
+        dataSourceTableView.sort { (product1, product2) -> Bool in
             guard let price1 = product1.price, let price2 = product2.price else {
                 return false // Обработайте случаи, когда price равно nil, если это необходимо
             }
@@ -309,7 +376,7 @@ extension ListViewController {
     }
     
     func sortPriceUp() {
-        dataSource.sort { (product1, product2) -> Bool in
+        dataSourceTableView.sort { (product1, product2) -> Bool in
             guard let price1 = product1.price, let price2 = product2.price else {
                 return false // Обработайте случаи, когда price равно nil, если это необходимо
             }
@@ -318,7 +385,7 @@ extension ListViewController {
     }
     
     func sortRecommendation() {
-        dataSource.sort { (product1, product2) -> Bool in
+        dataSourceTableView.sort { (product1, product2) -> Bool in
             guard let price1 = product1.sortIndex, let price2 = product2.sortIndex else {
                 return false // Обработайте случаи, когда price равно nil, если это необходимо
             }
@@ -330,7 +397,94 @@ extension ListViewController {
 }
 
 
+class FilterCell: UICollectionViewCell {
 
+    let label: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 17)
+        label.textAlignment = .center
+        label.textColor = UIColor.label
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        // Добавление метки на ячейку и установка ограничений для ее размера
+        contentView.backgroundColor = UIColor.secondarySystemBackground
+        contentView.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 0),
+            label.leadingAnchor.constraint(equalTo: contentView.leadingAnchor,constant: 0),
+            label.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: 0),
+            label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0)
+        ])
+//        contentView.layer.borderWidth = 1
+//        contentView.layer.borderColor = UIColor.label.cgColor
+        contentView.layer.cornerRadius = 5
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+//    func didChangedFilterProducts(filterProducts: [Product], isActiveScreenFilter: Bool?, minimumValue: Double?, maximumValue: Double?, lowerValue: Double?, upperValue: Double?, countFilterProduct: Int?, selectedStates: [IndexPath : Bool]?, selectedCell: [Int : [String]]?) {
+//        dataSource = filterProducts
+//
+//        switch changedAlertAction {
+//        case .Recommendation:
+//            sortRecommendation()
+//        case .PriceDown:
+//            sortPriceDown()
+//        case .PriceUp:
+//            sortPriceUp()
+//        case .Alphabetically:
+//            sortAlphabetically()
+//        }
+//
+//        if reserverDataSource.count == filterProducts.count {
+//            navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemCyan
+//        } else {
+//            navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemPink
+//        }
+//
+//
+//        // MARK: set property for filter -
+//
+//        self.isActiveScreenFilter = isActiveScreenFilter ?? false
+//        self.minimumValue = minimumValue
+//        self.maximumValue = maximumValue
+//        self.lowerValue = lowerValue
+//        self.upperValue = upperValue
+//        self.countFilterProduct = countFilterProduct
+//        self.selectedStates = selectedStates
+//        self.selectedCell = selectedCell
+//
+//    }
+    
+//    func didChangedFilterProducts(filterProducts: [Product]) {
+//
+//        dataSource = filterProducts
+//
+//        switch changedAlertAction {
+//        case .Recommendation:
+//            sortRecommendation()
+//        case .PriceDown:
+//            sortPriceDown()
+//        case .PriceUp:
+//            sortPriceUp()
+//        case .Alphabetically:
+//            sortAlphabetically()
+//        }
+//
+//        if reserverDataSource.count == filterProducts.count {
+//            navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemCyan
+//        } else {
+//            navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemPink
+//        }
+//    }
 class ViewController: UIViewController {
 
     var dataSource = [String:[String]]()

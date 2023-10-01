@@ -16,7 +16,8 @@ enum AlertActions:String {
 }
 
 protocol CustomRangeViewDelegate: AnyObject {
-    func didChangedFilterProducts(filterProducts:[Product], isActiveScreenFilter:Bool?, isFixedPriceProducts:Bool?, minimumValue: Double?, maximumValue: Double?, lowerValue: Double?, upperValue: Double?, countFilterProduct:Int?, selectedStates: [IndexPath: Bool]?, selectedCell: [Int: [String]]?)
+    func didChangedFilterProducts(filterProducts:[Product], isActiveScreenFilter:Bool?, isFixedPriceProducts:Bool?, minimumValue: Double?, maximumValue: Double?, lowerValue: Double?, upperValue: Double?, countFilterProduct:Int?, selectedItem: [IndexPath:String]?)
+//    func didChangedFilterProducts(filterProducts:[Product], isActiveScreenFilter:Bool?, isFixedPriceProducts:Bool?, minimumValue: Double?, maximumValue: Double?, lowerValue: Double?, upperValue: Double?, countFilterProduct:Int?, selectedStates: [IndexPath: Bool]?, selectedCell: [Int: [String]]?)
 }
 
 class ListViewController: UIViewController {
@@ -53,14 +54,20 @@ class ListViewController: UIViewController {
     // отсюда мы сформируем контент для collectionView и при каждом удалении cell мы будем из него удалять значение
     // selectedCell - [2: ["Leather", "Artificial Material"], 1: ["LCWKK"], 0: ["Bright"]]
     //    selectedStates - [[2, 0]: true, [1, 2]: false, [0, 0]: true, [2, 1]: true, [1, 1]: true]
+    
+    // selectedCell - [1: ["Marko"]] - первая секция и имя cell
+    // selectedStates - [[1, 4]: true] - первая секция 4 элемент true выделен,  false нет
     // так же мы должны удалять значения из selectedStates
+    
     // filterProductsUniversal(products: allProducts, color: selectedCell[0], brand: selectedCell[1], material: selectedCell[2], season: selectedCell[3], minPrice: Int(rangeSlider.lowerValue), maxPrice: Int(rangeSlider.upperValue))
     // затем мы должны каждый раз вызывать func filterProductsUniversal и обновлять этими данными таблицу
     
     // появилась мысль вынести всю сущность фильтр в один менеджер
 
-    var selectedStates: [IndexPath: Bool]?
-    var selectedCell: [Int: [String]]?
+//    var selectedStates: [IndexPath: Bool]?
+//    var selectedCell: [Int: [String]]?
+    
+    var selectedItem: [IndexPath:String]?
     
     var heightCnstrCollectionView: NSLayoutConstraint!
     
@@ -70,7 +77,7 @@ class ListViewController: UIViewController {
         
         let layout = UserProfileTagsFlowLayout()
         layout.scrollDirection = .vertical
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+        layout.sectionInset = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         return collectionView
@@ -85,8 +92,8 @@ class ListViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        view.backgroundColor = .clear
+        title = "List"
+        view.backgroundColor = UIColor.systemBackground
         view.tintColor = .systemCyan
         
         collectionView.dataSource = self
@@ -94,7 +101,7 @@ class ListViewController: UIViewController {
         collectionView.register(FilterCell.self, forCellWithReuseIdentifier: "filterCell")
         heightCnstrCollectionView = collectionView.heightAnchor.constraint(equalToConstant: 0)
         heightCnstrCollectionView.isActive = true
-        collectionView.backgroundColor = .systemPink
+        collectionView.backgroundColor = .clear
         view.addSubview(collectionView)
         
         tableView.delegate = self
@@ -104,10 +111,7 @@ class ListViewController: UIViewController {
         setupConstraints()
         configureNavigationItem()
         dataSourceTableView = dataManager.createRandomProduct()
-        dataSourceCollectionView = ["DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD"]
-//        ["DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD"]
-//        "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT","DDDDDD", "TTTTTT"
-//
+        dataSourceCollectionView = ["DDDDDDrrtttt","e","TTTTTT","DD55555DDD", "TTT","DDDDDD","Ee"]
         sortRecommendation()
         reserverDataSource = dataSourceTableView
         setupAlertSorted()
@@ -118,24 +122,20 @@ class ListViewController: UIViewController {
         print("collectionView.contentSize.height - \(collectionView.contentSize.height)")
         if Int(collectionView.collectionViewLayout.collectionViewContentSize.height) == 0 {
             heightCnstrCollectionView.constant = collectionView.frame.height
-            
-            
         } else {
             heightCnstrCollectionView.constant = collectionView.collectionViewLayout.collectionViewContentSize.height
         }
     }
     
     private func setupConstraints() {
-//        , collectionView.heightAnchor.constraint(equalToConstant: collectionView.contentSize.height)
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0),
             collectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 0),
             collectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: 0),
             collectionView.bottomAnchor.constraint(equalTo: tableView.topAnchor)
         ])
-//        collectionView.bottomAnchor
+
         NSLayoutConstraint.activate([tableView.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 0), tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 0), tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: 0), tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 0)])
-        
     }
     
     private func configureNavigationItem() {
@@ -153,8 +153,9 @@ class ListViewController: UIViewController {
         customVC.allProducts = reserverDataSource
         customVC.delegate = self
         if isActiveScreenFilter {
-            customVC.selectedCell = selectedCell ?? [:]
-            customVC.selectedStates = selectedStates ?? [:]
+//            customVC.selectedCell = selectedCell ?? [:]
+//            customVC.selectedStates = selectedStates ?? [:]
+            customVC.selectedItem = selectedItem ?? [:]
             customVC.minimumValue = minimumValue
             customVC.maximumValue = maximumValue
             customVC.lowerValue = lowerValue
@@ -233,47 +234,49 @@ extension ListViewController: UICollectionViewDelegate, UICollectionViewDataSour
     
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        
+        print("let label = UILabel()")
         var labelSize = CGSize()
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 17)
-        label.textAlignment = .center
-        label.textColor = UIColor.label
-        label.text = dataSourceCollectionView[indexPath.item]
+        var label :UILabel? = UILabel()
+        label?.font = UIFont.systemFont(ofSize: 17)
+        label?.textAlignment = .center
+        label?.textColor = UIColor.label
+        label?.text = dataSourceCollectionView[indexPath.item]
         
-        labelSize = label.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude))
-        labelSize = CGSize(width: labelSize.width + 20, height: labelSize.height + 20)
+        labelSize = label?.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)) ?? .zero
+        labelSize = CGSize(width: labelSize.width + labelSize.height + 20, height: labelSize.height + 10)
+        label = nil
         return labelSize
-//        let font = UIFont.systemFont(ofSize: 17)
-//        let text = dataSourceCollectionView[indexPath.row] // Получаем текст из вашего массива данных
-//            let textBoundingSize = NSString(string: text).boundingRect(with: CGSize(width: 10, height: CGFloat.greatestFiniteMagnitude), options: .usesLineFragmentOrigin, attributes: [NSAttributedString.Key.font: font], context: nil).size // Рассчитываем ограничивающий прямоугольник на основе текста
-//
-//            return CGSize(width: textBoundingSize.width, height: textBoundingSize.height) // Возвращаем размеры ячейки с учетом паддингов
-
-
-//        return CGSize(width: 50, height: 25)
     }
     
-//    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-//
-//        var labelSize = CGSize()
-//        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "filterCell", for: indexPath) as? FilterCell
-//
-//        cell?.label.text = dataSourceCollectionView[indexPath.item]
-//        labelSize = cell?.label.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)) ?? .zero
-//////        if labelSize != .zero {
-//////            labelSize = CGSize(width: labelSize.width + 20, height: labelSize.height + 20)
-//////        }
-//        labelSize = CGSize(width: labelSize.width + 20, height: labelSize.height + 20)
-////        return CGSize(width: 50, height: 25)
-//        return labelSize
-//    }
-    
+    //        let font = UIFont.systemFont(ofSize: 17)
+    //        let text = dataSourceCollectionView[indexPath.row] // Получаем текст из вашего массива данных
+    //            let textBoundingSize = NSString(string: text).boundingRect(with: CGSize(width: 10, height: CGFloat.greatestFiniteMagnitude), options: .usesLineFragmentOrigin, attributes: [NSAttributedString.Key.font: font], context: nil).size // Рассчитываем ограничивающий прямоугольник на основе текста
+    //
+    //            return CGSize(width: textBoundingSize.width, height: textBoundingSize.height) // Возвращаем размеры ячейки с учетом паддингов
+
+
+    //        return CGSize(width: 50, height: 25)
+//        }
+        
+    //    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+    //
+    //        var labelSize = CGSize()
+    //        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "filterCell", for: indexPath) as? FilterCell
+    //
+    //        cell?.label.text = dataSourceCollectionView[indexPath.item]
+    //        labelSize = cell?.label.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)) ?? .zero
+    //////        if labelSize != .zero {
+    //////            labelSize = CGSize(width: labelSize.width + 20, height: labelSize.height + 20)
+    //////        }
+    //        labelSize = CGSize(width: labelSize.width + 20, height: labelSize.height + 20)
+    ////        return CGSize(width: 50, height: 25)
+    //        return labelSize
+    //    }
     
 }
 
 extension ListViewController:CustomRangeViewDelegate {
-    func didChangedFilterProducts(filterProducts: [Product], isActiveScreenFilter: Bool?, isFixedPriceProducts: Bool?, minimumValue: Double?, maximumValue: Double?, lowerValue: Double?, upperValue: Double?, countFilterProduct: Int?, selectedStates: [IndexPath : Bool]?, selectedCell: [Int : [String]]?) {
+    func didChangedFilterProducts(filterProducts: [Product], isActiveScreenFilter: Bool?, isFixedPriceProducts: Bool?, minimumValue: Double?, maximumValue: Double?, lowerValue: Double?, upperValue: Double?, countFilterProduct: Int?, selectedItem: [IndexPath:String]?) {
         
         dataSourceTableView = filterProducts
         
@@ -303,8 +306,9 @@ extension ListViewController:CustomRangeViewDelegate {
         self.lowerValue = lowerValue
         self.upperValue = upperValue
         self.countFilterProduct = countFilterProduct
-        self.selectedStates = selectedStates
-        self.selectedCell = selectedCell
+//        self.selectedStates = selectedStates
+//        self.selectedCell = selectedCell
+        self.selectedItem = selectedItem
         self.isFixedPriceProducts = isFixedPriceProducts
     }
 }
@@ -401,24 +405,54 @@ class FilterCell: UICollectionViewCell {
 
     let label: UILabel = {
         let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 17)
+        label.font = UIFont.systemFont(ofSize: 15)
         label.textAlignment = .center
+        label.backgroundColor = .clear
         label.textColor = UIColor.label
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
 
+    let deleteButton: UIButton = {
+        var configuration = UIButton.Configuration.gray()
+        configuration.buttonSize = .large
+        configuration.baseBackgroundColor = .clear
+        configuration.image = UIImage(systemName: "xmark")?.withTintColor(.systemPink, renderingMode: .alwaysOriginal)
+        var grayButton = UIButton(configuration: configuration)
+        grayButton.translatesAutoresizingMaskIntoConstraints = false
+        grayButton.addTarget(self, action: #selector(didTapDeleteButton(_:)), for: .touchUpInside)
+        
+        return grayButton
+    }()
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
 
         // Добавление метки на ячейку и установка ограничений для ее размера
         contentView.backgroundColor = UIColor.secondarySystemBackground
         contentView.addSubview(label)
+        contentView.addSubview(deleteButton)
+        
         NSLayoutConstraint.activate([
             label.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 0),
             label.leadingAnchor.constraint(equalTo: contentView.leadingAnchor,constant: 0),
-            label.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: 0),
+            label.trailingAnchor.constraint(equalTo: deleteButton.leadingAnchor, constant: 0),
             label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0)
+        ])
+        
+//        NSLayoutConstraint.activate([
+//            deleteButton.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 0),
+//            deleteButton.leadingAnchor.constraint(equalTo: label.trailingAnchor,constant: 0),
+//            deleteButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: 0),
+//            deleteButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0), deleteButton.heightAnchor.constraint(equalTo: label.heightAnchor), deleteButton.widthAnchor.constraint(equalTo: deleteButton.heightAnchor)
+//        ])
+        
+//        deleteButton.leadingAnchor.constraint(equalTo: label.trailingAnchor,constant: 0),
+        NSLayoutConstraint.activate([
+            deleteButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: 0),
+            deleteButton.centerYAnchor.constraint(equalTo: label.centerYAnchor),
+            deleteButton.heightAnchor.constraint(equalTo: label.heightAnchor),
+            deleteButton.widthAnchor.constraint(equalTo: deleteButton.heightAnchor)
         ])
 //        contentView.layer.borderWidth = 1
 //        contentView.layer.borderColor = UIColor.label.cgColor
@@ -427,6 +461,9 @@ class FilterCell: UICollectionViewCell {
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    @objc func didTapDeleteButton(_ sender: UIButton) {
     }
 }
 

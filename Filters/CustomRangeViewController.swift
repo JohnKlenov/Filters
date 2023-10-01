@@ -68,8 +68,10 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
         }
     }
     var stateReturnFilterProduct: StateFirstStart = .nul
-    var selectedStates: [IndexPath: Bool] = [:]
-    var selectedCell: [Int: [String]] = [:]
+    
+    var selectedItem: [IndexPath:String] = [:]
+//    var selectedStates: [IndexPath: Bool] = [:]
+//    var selectedCell: [Int: [String]] = [:]
 
     var isForcedPrice: Bool = false
     var isFixedPriceProducts:Bool = false
@@ -216,18 +218,33 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
     
     @objc func rangeSliderTouchUpInside(rangeSlider: RangeSlider) {
 //        firstCountProducts = nil
+        
+        let filteredColor = Array((selectedItem.filter { $0.key.section == 0 }).values)
+        let color = filteredColor.isEmpty ? nil : filteredColor
+        
+        let filteredBrand = Array((selectedItem.filter { $0.key.section == 1 }).values)
+        let brand = filteredBrand.isEmpty ? nil : filteredBrand
+        
+        let filteredMaterial = Array((selectedItem.filter { $0.key.section == 2 }).values)
+        let material = filteredMaterial.isEmpty ? nil : filteredMaterial
+        
+        let filteredSeason = Array((selectedItem.filter { $0.key.section == 3 }).values)
+        let season = filteredSeason.isEmpty ? nil : filteredSeason
+        
         stateReturnFilterProduct = .nul
         isFixedPriceProducts = true
         lowerValue = rangeSlider.lowerValue
         upperValue = rangeSlider.upperValue
-        fixedPriceFilterProducts = filterProductsUniversal(products: allProducts, color: selectedCell[0], brand: selectedCell[1], material: selectedCell[2], season: selectedCell[3], minPrice: Int(rangeSlider.lowerValue), maxPrice: Int(rangeSlider.upperValue))
+        fixedPriceFilterProducts = filterProductsUniversal(products: allProducts, color: color, brand: brand, material: material, season: season, minPrice: Int(rangeSlider.lowerValue), maxPrice: Int(rangeSlider.upperValue))
+//        fixedPriceFilterProducts = filterProductsUniversal(products: allProducts, color: selectedCell[0], brand: selectedCell[1], material: selectedCell[2], season: selectedCell[3], minPrice: Int(rangeSlider.lowerValue), maxPrice: Int(rangeSlider.upperValue))
     }
     
     
     @objc func didTapCloseButton() {
         
         if stateReturnFilterProduct == .reset {
-            delegate?.didChangedFilterProducts(filterProducts: allProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+//            delegate?.didChangedFilterProducts(filterProducts: allProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+            delegate?.didChangedFilterProducts(filterProducts: allProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedItem: nil)
         }
         self.dismiss(animated: true, completion: nil)
     }
@@ -245,8 +262,9 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
         rangeSlider.isEnabled = true
         isForcedPrice = false
         isFixedPriceProducts = false
-        selectedCell = [:]
-        selectedStates = [:]
+//        selectedCell = [:]
+//        selectedStates = [:]
+        selectedItem = [:]
         
         customTabBarView.setCounterButton(count: allProducts.count)
         calculatePriceForFilterProducts(products: allProducts)
@@ -457,11 +475,17 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
             return UICollectionViewCell()
         }
         
-        if let isSelected = selectedStates[indexPath], isSelected {
+        if let _ = selectedItem[indexPath] {
             cell.contentView.backgroundColor = UIColor.systemPurple
                } else {
                    cell.contentView.backgroundColor = UIColor.secondarySystemBackground
                }
+        
+//        if let isSelected = selectedStates[indexPath], isSelected {
+//            cell.contentView.backgroundColor = UIColor.systemPurple
+//               } else {
+//                   cell.contentView.backgroundColor = UIColor.secondarySystemBackground
+//               }
 
         
         switch indexPath.section {
@@ -486,55 +510,104 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         
-//        firstCountProducts = nil
         stateReturnFilterProduct = .nul
         isForcedPrice = false
         
-        if selectedStates[indexPath] == true {
-                    selectedStates[indexPath] = false
-                } else {
-                    selectedStates[indexPath] = true
-                }
+        
+        // MARK: -
+        
+//        selectedItem
         
         guard let cell = collectionView.cellForItem(at: indexPath) as? MyCell else {
-                return
-            }
+            return
+        }
         
-            let section = indexPath.section
-            let item = cell.label.text ?? ""
-
-            if var cellsInSection = selectedCell[section] {
-                if let indexToRemove = cellsInSection.firstIndex(of: item) {
-                    // Удаляем элемент из массива, если он уже был выбран
-                    cellsInSection.remove(at: indexToRemove)
-                } else {
-                    // Добавляем элемент в массив, если он еще не был выбран
-                    cellsInSection.append(item)
-                }
-                if cellsInSection.isEmpty {
-                    selectedCell[section] = nil
-                } else {
-                    selectedCell[section] = cellsInSection
-                }
-            } else {
-                // Если ключ секции отсутствует в словаре, создаем новый массив и добавляем элемент
-                selectedCell[section] = [item]
-            }
+        let item = cell.label.text ?? ""
+        
+        if let _ = selectedItem[indexPath] {
+            selectedItem[indexPath] = nil
+        } else {
+            selectedItem[indexPath] = item
+        }
+        
+        let filteredColor = Array((selectedItem.filter { $0.key.section == 0 }).values)
+        let color = filteredColor.isEmpty ? nil : filteredColor
+        
+        let filteredBrand = Array((selectedItem.filter { $0.key.section == 1 }).values)
+        let brand = filteredBrand.isEmpty ? nil : filteredBrand
+        
+        let filteredMaterial = Array((selectedItem.filter { $0.key.section == 2 }).values)
+        let material = filteredMaterial.isEmpty ? nil : filteredMaterial
+        
+        let filteredSeason = Array((selectedItem.filter { $0.key.section == 3 }).values)
+        let season = filteredSeason.isEmpty ? nil : filteredSeason
         
         if !isFixedPriceProducts {
             rangeSlider.isEnabled = true
-            filterProducts = filterProductsUniversal(products: allProducts, color: selectedCell[0], brand: selectedCell[1], material: selectedCell[2], season: selectedCell[3])
+            filterProducts = filterProductsUniversal(products: allProducts, color: color, brand: brand, material: material, season: season)
         } else {
-            fixedPriceFilterProducts = filterProductsUniversal(products: allProducts, color: selectedCell[0], brand: selectedCell[1], material: selectedCell[2], season: selectedCell[3], minPrice: Int(rangeSlider.lowerValue), maxPrice: Int(rangeSlider.upperValue))
+            fixedPriceFilterProducts = filterProductsUniversal(products: allProducts, color: color, brand: brand, material: material, season: season, minPrice: Int(rangeSlider.lowerValue), maxPrice: Int(rangeSlider.upperValue))
         }
-        
+
         // уходим от анимированного изменения цвета
         UIView.performWithoutAnimation {
                collectionView.reloadItems(at: [indexPath])
            }
 
-        print("selectedCell - \(selectedCell)")
-        print("selectedStates - \(selectedStates)")
+        print("selectedCell - \(selectedItem)")
+        
+        // MARK:  -
+        
+        
+//        if selectedStates[indexPath] == true {
+////                    selectedStates[indexPath] = false
+//            selectedStates[indexPath] = nil
+//                } else {
+//                    selectedStates[indexPath] = true
+//                }
+//
+////        let selectedStatess = [IndexPath:String]()
+////        let _ = filterProductsUniversal(products: allProducts, color: Array((selectedStatess.filter{$0.key.section == 0}).values), brand: Array((selectedStatess.filter{$0.key.section == 1}).values), material: Array((selectedStatess.filter{$0.key.section == 2}).values), season: Array((selectedStatess.filter{$0.key.section == 3}).values), minPrice: 1, maxPrice: 2)
+//
+//        guard let cell = collectionView.cellForItem(at: indexPath) as? MyCell else {
+//                return
+//            }
+//
+//            let section = indexPath.section
+//            let item = cell.label.text ?? ""
+//
+//            if var cellsInSection = selectedCell[section] {
+//                if let indexToRemove = cellsInSection.firstIndex(of: item) {
+//                    // Удаляем элемент из массива, если он уже был выбран
+//                    cellsInSection.remove(at: indexToRemove)
+//                } else {
+//                    // Добавляем элемент в массив, если он еще не был выбран
+//                    cellsInSection.append(item)
+//                }
+//                if cellsInSection.isEmpty {
+//                    selectedCell[section] = nil
+//                } else {
+//                    selectedCell[section] = cellsInSection
+//                }
+//            } else {
+//                // Если ключ секции отсутствует в словаре, создаем новый массив и добавляем элемент
+//                selectedCell[section] = [item]
+//            }
+//
+//        if !isFixedPriceProducts {
+//            rangeSlider.isEnabled = true
+//            filterProducts = filterProductsUniversal(products: allProducts, color: selectedCell[0], brand: selectedCell[1], material: selectedCell[2], season: selectedCell[3])
+//        } else {
+//            fixedPriceFilterProducts = filterProductsUniversal(products: allProducts, color: selectedCell[0], brand: selectedCell[1], material: selectedCell[2], season: selectedCell[3], minPrice: Int(rangeSlider.lowerValue), maxPrice: Int(rangeSlider.upperValue))
+//        }
+//
+//        // уходим от анимированного изменения цвета
+//        UIView.performWithoutAnimation {
+//               collectionView.reloadItems(at: [indexPath])
+//           }
+//
+//        print("selectedCell - \(selectedCell)")
+//        print("selectedStates - \(selectedStates)")
     }
     
     
@@ -616,6 +689,7 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
 }
 
 extension CustomRangeViewController: CustomTabBarViewDelegate {
+    
     func customTabBarViewDidTapButton(_ tabBarView: CustomTabBarView) {
         
         switch stateReturnFilterProduct {
@@ -623,7 +697,8 @@ extension CustomRangeViewController: CustomTabBarViewDelegate {
         case .nul:
             returnFilterProducts()
         case .reset:
-            delegate?.didChangedFilterProducts(filterProducts: allProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+//            delegate?.didChangedFilterProducts(filterProducts: allProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+            delegate?.didChangedFilterProducts(filterProducts: allProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedItem: nil)
         case .firstStart:
             break
         }
@@ -634,19 +709,51 @@ extension CustomRangeViewController: CustomTabBarViewDelegate {
     func returnFilterProducts() {
         if !isFixedPriceProducts {
             if filterProducts.count != allProducts.count {
-                delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: true, isFixedPriceProducts: false, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: rangeView.lowerValue, upperValue: rangeView.upperValue, countFilterProduct: filterProducts.count, selectedStates: selectedStates, selectedCell: selectedCell)
+//                delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: true, isFixedPriceProducts: false, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: rangeView.lowerValue, upperValue: rangeView.upperValue, countFilterProduct: filterProducts.count, selectedStates: selectedStates, selectedCell: selectedCell)
+                delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: true, isFixedPriceProducts: false, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: rangeView.lowerValue, upperValue: rangeView.upperValue, countFilterProduct: filterProducts.count, selectedItem: selectedItem)
             } else {
-                delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+                delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedItem: nil)
             }
         } else {
             if fixedPriceFilterProducts.count != allProducts.count {
                 print("fixedPriceFilterProducts - \(fixedPriceFilterProducts)")
-                delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: true, isFixedPriceProducts: true, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue, countFilterProduct: fixedPriceFilterProducts.count, selectedStates: selectedStates, selectedCell: selectedCell)
+                delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: true, isFixedPriceProducts: true, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue, countFilterProduct: fixedPriceFilterProducts.count, selectedItem: selectedItem)
             } else {
-                delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: false, isFixedPriceProducts: true, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+                delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: false, isFixedPriceProducts: true, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedItem: nil)
             }
         }
     }
+//    func customTabBarViewDidTapButton(_ tabBarView: CustomTabBarView) {
+//
+//        switch stateReturnFilterProduct {
+//
+//        case .nul:
+//            returnFilterProducts()
+//        case .reset:
+//            delegate?.didChangedFilterProducts(filterProducts: allProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+//        case .firstStart:
+//            break
+//        }
+//
+//        self.dismiss(animated: true, completion: nil)
+//    }
+//
+//    func returnFilterProducts() {
+//        if !isFixedPriceProducts {
+//            if filterProducts.count != allProducts.count {
+//                delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: true, isFixedPriceProducts: false, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: rangeView.lowerValue, upperValue: rangeView.upperValue, countFilterProduct: filterProducts.count, selectedStates: selectedStates, selectedCell: selectedCell)
+//            } else {
+//                delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+//            }
+//        } else {
+//            if fixedPriceFilterProducts.count != allProducts.count {
+//                print("fixedPriceFilterProducts - \(fixedPriceFilterProducts)")
+//                delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: true, isFixedPriceProducts: true, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue, countFilterProduct: fixedPriceFilterProducts.count, selectedStates: selectedStates, selectedCell: selectedCell)
+//            } else {
+//                delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: false, isFixedPriceProducts: true, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
+//            }
+//        }
+//    }
 }
 
 extension UIViewController {

@@ -77,7 +77,7 @@ class ListViewController: UIViewController {
         
         let layout = UserProfileTagsFlowLayout()
         layout.scrollDirection = .vertical
-        layout.sectionInset = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         return collectionView
@@ -101,7 +101,7 @@ class ListViewController: UIViewController {
         collectionView.register(FilterCell.self, forCellWithReuseIdentifier: "filterCell")
         heightCnstrCollectionView = collectionView.heightAnchor.constraint(equalToConstant: 0)
         heightCnstrCollectionView.isActive = true
-        collectionView.backgroundColor = .clear
+        collectionView.backgroundColor = .blue
         view.addSubview(collectionView)
         
         tableView.delegate = self
@@ -111,7 +111,8 @@ class ListViewController: UIViewController {
         setupConstraints()
         configureNavigationItem()
         dataSourceTableView = dataManager.createRandomProduct()
-        dataSourceCollectionView = ["DDDDDDrrtttt","e","TTTTTT","DD55555DDD", "TTT","DDDDDD","Ee"]
+//        dataSourceCollectionView = ["DDDDDDrrtttt","e","TTTTTT","DD55555DDD", "TTT","DDDDDD","Ee"]
+        
         sortRecommendation()
         reserverDataSource = dataSourceTableView
         setupAlertSorted()
@@ -123,8 +124,19 @@ class ListViewController: UIViewController {
         if Int(collectionView.collectionViewLayout.collectionViewContentSize.height) == 0 {
             heightCnstrCollectionView.constant = collectionView.frame.height
         } else {
+            print("Int(collectionView.collectionViewLayout.collectionViewContentSize.height) != 0")
             heightCnstrCollectionView.constant = collectionView.collectionViewLayout.collectionViewContentSize.height
         }
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        setupCollectionView()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        print("viewDidAppear collectionView.contentSize.height - \(collectionView.contentSize.height)")
     }
     
     private func setupConstraints() {
@@ -146,6 +158,22 @@ class ListViewController: UIViewController {
         let sortedButton = UIBarButtonItem(image: UIImage(systemName: "arrow.up.arrow.down"), style: .plain, target: self, action: #selector(sortedButtonTapped))
         sortedButton.tintColor = UIColor.systemCyan
         navigationItem.rightBarButtonItems = [sortedButton, filterButton]
+    }
+    
+    private func setupCollectionView() {
+        if let selectedItem = selectedItem {
+            let cell = selectedItem.map{$0.value}
+            print("cell - \(cell)")
+            dataSourceCollectionView = cell
+            let layout = collectionView.collectionViewLayout as? UserProfileTagsFlowLayout
+            layout?.sectionInset = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
+            heightCnstrCollectionView.constant = 1
+        } else {
+            dataSourceCollectionView = []
+            let layout = collectionView.collectionViewLayout as? UserProfileTagsFlowLayout
+            layout?.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+            heightCnstrCollectionView.constant = 0
+        }
     }
     
     @objc func filterButtonTapped() {

@@ -34,7 +34,8 @@ class ListViewController: UIViewController {
     
     var dataSourceCollectionView: [String] = [] {
         didSet {
-            collectionView.reloadData()
+            print("didSet dataSourceCollectionView ")
+//            collectionView.reloadData()
         }
     }
     
@@ -120,11 +121,10 @@ class ListViewController: UIViewController {
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        print("collectionView.contentSize.height - \(collectionView.contentSize.height)")
+        
         if Int(collectionView.collectionViewLayout.collectionViewContentSize.height) == 0 {
             heightCnstrCollectionView.constant = collectionView.frame.height
         } else {
-            print("Int(collectionView.collectionViewLayout.collectionViewContentSize.height) != 0")
             heightCnstrCollectionView.constant = collectionView.collectionViewLayout.collectionViewContentSize.height
         }
     }
@@ -134,10 +134,6 @@ class ListViewController: UIViewController {
         setupCollectionView()
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        print("viewDidAppear collectionView.contentSize.height - \(collectionView.contentSize.height)")
-    }
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
@@ -165,11 +161,15 @@ class ListViewController: UIViewController {
             let cell = selectedItem.map{$0.value}
             print("cell - \(cell)")
             dataSourceCollectionView = cell
+            collectionView.reloadData()
             let layout = collectionView.collectionViewLayout as? UserProfileTagsFlowLayout
             layout?.sectionInset = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
+//            view.setNeedsLayout()
+//            view.layoutIfNeeded()
             heightCnstrCollectionView.constant = 1
         } else {
             dataSourceCollectionView = []
+            collectionView.reloadData()
             let layout = collectionView.collectionViewLayout as? UserProfileTagsFlowLayout
             layout?.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
             heightCnstrCollectionView.constant = 0
@@ -255,14 +255,14 @@ extension ListViewController: UICollectionViewDelegate, UICollectionViewDataSour
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "filterCell", for: indexPath) as? FilterCell else {
             return UICollectionViewCell()
         }
-        
+        cell.delegate = self
         cell.label.text = dataSourceCollectionView[indexPath.row]
         return cell
     }
     
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        print("let label = UILabel()")
+        print("let label = UILabel() indexPath - \(indexPath)")
         var labelSize = CGSize()
         var label :UILabel? = UILabel()
         label?.font = UIFont.systemFont(ofSize: 17)
@@ -428,7 +428,42 @@ extension ListViewController {
     
 }
 
+extension ListViewController: FilterCellDelegate {
+    func didDeleteCellFilter(_ filterCell: FilterCell) {
+        if let indexPath = collectionView.indexPath(for: filterCell) {
+            
+            if let selectedItem = selectedItem {
+                dataSourceCollectionView.remove(at: indexPath.item)
+                collectionView.deleteItems(at: [indexPath])
+                
+                view.setNeedsLayout()
+                view.layoutIfNeeded()
+            } else {
+                
+            }
+            
+//                let layout = collectionView.collectionViewLayout as? UserProfileTagsFlowLayout
+//                layout?.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+                
+            
+//            collectionView.reloadData()
+            
+//            if var selectedItem = selectedItem, let index = selectedItem.firstIndex(where: { $0.value == "Значение для удаления" }) {
+//                selectedItem.remove(at: index)
+//            }
 
+        } else {
+            print("Returne message for analitic FB Crashlystics")
+        }
+    }
+    
+    
+}
+
+
+protocol FilterCellDelegate: AnyObject {
+    func didDeleteCellFilter(_ filterCell: FilterCell)
+}
 class FilterCell: UICollectionViewCell {
 
     let label: UILabel = {
@@ -452,6 +487,8 @@ class FilterCell: UICollectionViewCell {
         
         return grayButton
     }()
+    
+    weak var delegate: FilterCellDelegate?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -492,6 +529,7 @@ class FilterCell: UICollectionViewCell {
     }
     
     @objc func didTapDeleteButton(_ sender: UIButton) {
+        delegate?.didDeleteCellFilter(self)
     }
 }
 

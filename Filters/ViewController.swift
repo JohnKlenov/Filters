@@ -121,7 +121,7 @@ class ListViewController: UIViewController {
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        
+        print("viewDidLayoutSubviews")
         if Int(collectionView.collectionViewLayout.collectionViewContentSize.height) == 0 {
             heightCnstrCollectionView.constant = collectionView.frame.height
         } else {
@@ -432,32 +432,26 @@ extension ListViewController: FilterCellDelegate {
     func didDeleteCellFilter(_ filterCell: FilterCell) {
         if let indexPath = collectionView.indexPath(for: filterCell) {
             
-            if let selectedItem = selectedItem {
-                dataSourceCollectionView.remove(at: indexPath.item)
-                collectionView.deleteItems(at: [indexPath])
-                
-                view.setNeedsLayout()
-                view.layoutIfNeeded()
-            } else {
-                
+            dataSourceCollectionView.remove(at: indexPath.item)
+            collectionView.deleteItems(at: [indexPath])
+            
+            view.setNeedsLayout()
+            view.layoutIfNeeded()
+            if let index = selectedItem?.firstIndex(where: { $0.value == filterCell.label.text}) {
+                selectedItem?.remove(at: index)
             }
-            
-//                let layout = collectionView.collectionViewLayout as? UserProfileTagsFlowLayout
-//                layout?.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-                
-            
-//            collectionView.reloadData()
-            
-//            if var selectedItem = selectedItem, let index = selectedItem.firstIndex(where: { $0.value == "Значение для удаления" }) {
-//                selectedItem.remove(at: index)
-//            }
-
+            if let selectedItem = selectedItem, selectedItem.isEmpty {
+                self.selectedItem = nil
+                self.isActiveScreenFilter = false
+                self.isFixedPriceProducts = false
+                let layout = collectionView.collectionViewLayout as? UserProfileTagsFlowLayout
+                layout?.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+                heightCnstrCollectionView.constant = 0
+            }
         } else {
             print("Returne message for analitic FB Crashlystics")
         }
     }
-    
-    
 }
 
 

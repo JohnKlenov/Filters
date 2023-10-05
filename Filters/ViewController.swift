@@ -425,8 +425,74 @@ extension ListViewController {
         }
     }
     
+    func filterProductsUniversal(products: [Product], color: [String]? = nil, brand: [String]? = nil, material: [String]? = nil, season: [String]? = nil, minPrice: Int? = nil, maxPrice: Int? = nil) -> [Product] {
+        let filteredProducts = products.filter { product in
+            var isMatched = true
+
+            if let color = color {
+                isMatched = isMatched && color.contains(product.color ?? "")
+            }
+
+            if let brand = brand {
+                isMatched = isMatched && brand.contains(product.brand ?? "")
+            }
+
+            if let material = material {
+                isMatched = isMatched && material.contains(product.material ?? "")
+            }
+
+            if let season = season {
+                isMatched = isMatched && season.contains(product.season ?? "")
+            }
+
+            if let minPrice = minPrice {
+                isMatched = isMatched && (product.price ?? -1 >= minPrice)
+            }
+
+            if let maxPrice = maxPrice {
+                isMatched = isMatched && (product.price ?? 1000 <= maxPrice)
+            }
+
+            return isMatched
+        }
+
+        return filteredProducts
+    }
     
+    private func calculateRangePrice(products: [Product]) {
+        
+        var minPrice = Int.max
+        var maxPrice = Int.min
+        
+        var counter = 0
+        for product in products {
+            counter+=1
+
+            if let price = product.price {
+
+                if price < minPrice {
+                    minPrice = price
+                }
+                if price > maxPrice {
+                    maxPrice = price
+                }
+            }
+        }
+        
+        if counter == products.count {
+            lowerValue = Double(minPrice)
+            upperValue = Double(maxPrice)
+        }
+    }
 }
+
+//if minPrice != maxPrice {
+////                configureRangeView(minimumValue: Double(minPrice), maximumValue: Double(maxPrice))
+//            } else {
+////                isForcedPrice = true
+////                rangeSlider.isEnabled = false
+////                rangeView.updateLabels(lowerValue: Double(minPrice), upperValue: Double(maxPrice))
+//            }
 
 extension ListViewController: FilterCellDelegate {
     func didDeleteCellFilter(_ filterCell: FilterCell) {
@@ -447,6 +513,28 @@ extension ListViewController: FilterCellDelegate {
                 let layout = collectionView.collectionViewLayout as? UserProfileTagsFlowLayout
                 layout?.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
                 heightCnstrCollectionView.constant = 0
+                
+                dataSourceTableView = filterProductsUniversal(products: reserverDataSource)
+                navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemCyan
+                
+            } else if let selectedItem = selectedItem {
+                // here we have to get a new filterProduct and returne here in dataSource UITableView
+                
+                let filteredColor = Array((selectedItem.filter { $0.key.section == 0 }).values)
+                let color = filteredColor.isEmpty ? nil : filteredColor
+                
+                let filteredBrand = Array((selectedItem.filter { $0.key.section == 1 }).values)
+                let brand = filteredBrand.isEmpty ? nil : filteredBrand
+                
+                let filteredMaterial = Array((selectedItem.filter { $0.key.section == 2 }).values)
+                let material = filteredMaterial.isEmpty ? nil : filteredMaterial
+                
+                let filteredSeason = Array((selectedItem.filter { $0.key.section == 3 }).values)
+                let season = filteredSeason.isEmpty ? nil : filteredSeason
+                
+                dataSourceTableView = filterProductsUniversal(products: reserverDataSource, color: color, brand: brand, material: material, season: season)
+                calculateRangePrice(products: dataSourceTableView)
+                countFilterProduct = dataSourceTableView.count
             }
         } else {
             print("Returne message for analitic FB Crashlystics")

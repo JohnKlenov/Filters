@@ -363,21 +363,25 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
                 let sortValue = dataSource[key]?.sorted()
                 dataSource[key] = sortValue
             }
-            if let minimumValue = minimumValue, let maximumValue = maximumValue, let lowerValue = lowerValue, let upperValue = upperValue  {
-                if lowerValue != upperValue {
-                    configureRangeViewForScreenFilter(minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue)
-                } else {
-                    configureRangeViewForScreenFilter(minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: minimumValue, upperValue: maximumValue)
-                    isForcedPrice = true
-                    rangeSlider.isEnabled = false
-                    rangeView.updateLabels(lowerValue: lowerValue, upperValue: upperValue)
+           
+            if isFixedPriceProducts {
+//                configureRangeViewForScreenFilter(minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue)
+            } else {
+                if let minimumValue = minimumValue, let maximumValue = maximumValue, let lowerValue = lowerValue, let upperValue = upperValue  {
+                    if lowerValue != upperValue {
+                        configureRangeViewForScreenFilter(minimumValue: lowerValue, maximumValue: upperValue, lowerValue: lowerValue, upperValue: upperValue)
+                    } else {
+                        configureRangeViewForScreenFilter(minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: minimumValue, upperValue: maximumValue)
+                        isForcedPrice = true
+                        rangeSlider.isEnabled = false
+                        rangeView.updateLabels(lowerValue: lowerValue, upperValue: upperValue)
+                    }
                 }
-                
             }
             self.dataSource = dataSource
         }
     }
-
+    
     private func calculatePriceForFilterProducts(products: [Product]) {
         
         print("calculatePriceForFilterProducts(product.count) - \(products.count)")
@@ -1061,6 +1065,18 @@ class RangeView: UIView {
         setupUI()
     }
 }
+
+//            if let minimumValue = minimumValue, let maximumValue = maximumValue, let lowerValue = lowerValue, let upperValue = upperValue  {
+//                if lowerValue != upperValue {
+//                    configureRangeViewForScreenFilter(minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue)
+//                } else {
+//                    configureRangeViewForScreenFilter(minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: minimumValue, upperValue: maximumValue)
+//                    isForcedPrice = true
+//                    rangeSlider.isEnabled = false
+//                    rangeView.updateLabels(lowerValue: lowerValue, upperValue: upperValue)
+//                }
+//
+//            }
 
 //        if let _ = firstCountProducts {
 //            // если not nil то это хорошо работает для первого посещения с VC но

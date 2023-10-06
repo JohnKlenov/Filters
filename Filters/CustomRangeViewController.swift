@@ -74,7 +74,7 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
     let closeButton: UIButton = {
         var configButton = UIButton.Configuration.plain()
         configButton.title = "Close"
-        configButton.baseForegroundColor = UIColor.systemPurple
+        configButton.baseForegroundColor = UIColor.systemCyan
         configButton.titleAlignment = .leading
         configButton.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incomig in
 
@@ -90,7 +90,7 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
     let resetButton: UIButton = {
         var configButton = UIButton.Configuration.plain()
         configButton.title = "Reset"
-        configButton.baseForegroundColor = UIColor.systemPurple
+        configButton.baseForegroundColor = UIColor.systemCyan
         configButton.titleAlignment = .trailing
         configButton.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incomig in
 
@@ -433,7 +433,7 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
         }
         
         if let _ = selectedItem[indexPath] {
-            cell.contentView.backgroundColor = UIColor.systemPurple
+            cell.contentView.backgroundColor = UIColor.systemCyan
                } else {
                    cell.contentView.backgroundColor = UIColor.secondarySystemBackground
                }
@@ -760,14 +760,15 @@ class CustomTabBarView: UIView {
     let button: UIButton = {
         var configButton = UIButton.Configuration.gray()
         configButton.title = "Show products"
-        configButton.baseForegroundColor = UIColor.label
+        configButton.baseForegroundColor = UIColor.systemOrange
+//        configButton.baseForegroundColor = UIColor.label
         configButton.buttonSize = .large
-        configButton.baseBackgroundColor = UIColor.systemPurple
+        configButton.baseBackgroundColor = UIColor.systemGray3
         configButton.titleAlignment = .leading
         configButton.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incomig in
 
             var outgoing = incomig
-            outgoing.font = UIFont.systemFont(ofSize: 17, weight: .medium)
+            outgoing.font = UIFont.systemFont(ofSize: 17, weight: .bold)
             return outgoing
         }
         var button = UIButton(configuration: configButton)

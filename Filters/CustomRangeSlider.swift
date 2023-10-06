@@ -47,7 +47,7 @@ class RangeSlider: UIControl {
 //    var trackHighlightTintColor: UIColor = UIColor(red: 0.0, green: 0.45, blue: 0.94, alpha: 1.0)
 //    var trackHighlightTintColor: UIColor = UIColor(red: 0.5, green: 0.0, blue: 0.5, alpha: 1.0)
 
-    var trackHighlightTintColor: UIColor = UIColor.systemPurple {
+    var trackHighlightTintColor: UIColor = UIColor.systemCyan {
         didSet {
             trackLayer.setNeedsDisplay()
         }

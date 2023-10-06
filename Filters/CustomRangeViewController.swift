@@ -317,7 +317,6 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
             }
            
             if isFixedPriceProducts {
-                print("isFixedPriceProducts isFixedPriceProducts isFixedPriceProducts")
                 if let minimumValue = minimumValue, let maximumValue = maximumValue, let lowerValue = lowerValue, let upperValue = upperValue  {
                     configureRangeViewForScreenFilter(minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue)
                     }
@@ -339,7 +338,6 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
     
     private func calculatePriceForFilterProducts(products: [Product]) {
         
-        print("calculatePriceForFilterProducts(product.count) - \(products.count)")
         var minPrice = Int.max
         var maxPrice = Int.min
         
@@ -606,7 +604,6 @@ extension CustomRangeViewController: CustomTabBarViewDelegate {
             }
         } else {
             if fixedPriceFilterProducts.count != allProducts.count {
-                print("fixedPriceFilterProducts - \(fixedPriceFilterProducts)")
                 delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: true, isFixedPriceProducts: true, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue, countFilterProduct: fixedPriceFilterProducts.count, selectedItem: selectedItem)
             } else {
                 delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: false, isFixedPriceProducts: true, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedItem: nil)
@@ -906,225 +903,4 @@ class RangeView: UIView {
     }
 }
 
-//            if let minimumValue = minimumValue, let maximumValue = maximumValue, let lowerValue = lowerValue, let upperValue = upperValue  {
-//                if lowerValue != upperValue {
-//                    configureRangeViewForScreenFilter(minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue)
-//                } else {
-//                    configureRangeViewForScreenFilter(minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: minimumValue, upperValue: maximumValue)
-//                    isForcedPrice = true
-//                    rangeSlider.isEnabled = false
-//                    rangeView.updateLabels(lowerValue: lowerValue, upperValue: upperValue)
-//                }
-//
-//            }
 
-//        if let _ = firstCountProducts {
-//            // если not nil то это хорошо работает для первого посещения с VC но
-//            delegate?.didChangedFilterProducts(filterProducts: allProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
-//        } else {
-//            if !isFixedPriceProducts {
-//                if filterProducts.count != allProducts.count {
-//                    delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: true, isFixedPriceProducts: false, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: rangeView.lowerValue, upperValue: rangeView.upperValue, countFilterProduct: filterProducts.count, selectedStates: selectedStates, selectedCell: selectedCell)
-//                } else {
-//                    delegate?.didChangedFilterProducts(filterProducts: filterProducts, isActiveScreenFilter: false, isFixedPriceProducts: false, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
-//                }
-//            } else {
-//                if fixedPriceFilterProducts.count != allProducts.count {
-//                    print("fixedPriceFilterProducts - \(fixedPriceFilterProducts)")
-//                    delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: true, isFixedPriceProducts: true, minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue, countFilterProduct: fixedPriceFilterProducts.count, selectedStates: selectedStates, selectedCell: selectedCell)
-//                } else {
-//                    delegate?.didChangedFilterProducts(filterProducts: fixedPriceFilterProducts, isActiveScreenFilter: false, isFixedPriceProducts: true, minimumValue: nil, maximumValue: nil, lowerValue: nil, upperValue: nil, countFilterProduct: nil, selectedStates: nil, selectedCell: nil)
-//                }
-//            }
-//        }
-
-//    private func calculatePriceRange(products: [Product]) {
-//        var minPrice = Int.max
-//        var maxPrice = Int.min
-//
-//        var counter = 0
-//        for product in products {
-//            counter+=1
-//
-//            if let price = product.price {
-//
-//                if price < minPrice {
-//                    minPrice = price
-//                }
-//                if price > maxPrice {
-//                    maxPrice = price
-//                }
-//            }
-//        }
-//
-//        if counter == products.count {
-//            print("minimumValue - \(minPrice)")
-//            print("maximumValue - \(maxPrice)")
-//            firstMinPrice = minPrice
-//            firstMaxPrice = maxPrice
-//        }
-//    }
-
-//    func filterProducts(products: [Product], color: String? = nil, brand: String? = nil, material: String? = nil, season: String? = nil) -> [Product] {
-//        let filteredProducts = products.filter { product in
-//            var isMatched = true
-//
-//            if let color = color {
-//                isMatched = isMatched && product.color == color
-//            }
-//
-//            if let brand = brand {
-//                isMatched = isMatched && product.brand == brand
-//            }
-//
-//            if let material = material {
-//                isMatched = isMatched && product.material == material
-//            }
-//
-//            if let season = season {
-//                isMatched = isMatched && product.season == season
-//            }
-//
-//            return isMatched
-//        }
-//
-//        return filteredProducts
-//    }
-
-//    func filterProductsForBrands(products: [Product], brands: [String]? = nil) -> [Product] {
-//        let filteredProducts = products.filter { product in
-//            var isMatched = true
-//
-//            if let brands = brands {
-//                isMatched = isMatched && brands.contains(product.brand ?? "")
-//            }
-//            return isMatched
-//        }
-//
-//        return filteredProducts
-//    }
-
-//    func filterProducts(products: [Product], color: String? = nil, brand: String? = nil, material: String? = nil, season: String? = nil) -> [Product] {
-//        let filteredProducts = products.filter { product in
-//            var isMatched = true
-//
-//            if let color = color {
-//                isMatched = isMatched && product.color == color
-//            }
-//
-//            if let brand = brand {
-//                isMatched = isMatched && product.brand == brand
-//            }
-//
-//            if let material = material {
-//                isMatched = isMatched && product.material == material
-//            }
-//
-//            if let season = season {
-//                isMatched = isMatched && product.season == season
-//            }
-//
-//            return isMatched
-//        }
-//
-//        return filteredProducts
-//    }
-
-
-//        filterAllProduct(products: allProducts) { [weak self] (dataSource, min, max) in
-//
-//            configureRangeView(minimumValue: Double(min), maximumValue: Double(max))
-//            self?.dataSource = dataSource
-//        }
-//    func filterAllProduct(products: [Product], completion: ([String: [String]], Int, Int ) -> Void
-//    ) {
-//        var minPrice = Int.max
-//        var maxPrice = Int.min
-//        var dataSource = [String: [String]]()
-//        var counter = 0
-//        for product in products {
-//            counter+=1
-//            if let color = product.color {
-//                dataSource["color", default: []].append(color)
-//            }
-//            if let brand = product.brand {
-//                dataSource["brand", default: []].append(brand)
-//            }
-//            if let material = product.material {
-//                dataSource["material", default: []].append(material)
-//            }
-//            if let season = product.season {
-//                dataSource["season", default: []].append(season)
-//            }
-//            if let price = product.price {
-//
-//                   if price < minPrice {
-//                       minPrice = price
-//                   }
-//                   if price > maxPrice {
-//                       maxPrice = price
-//                   }
-//               }
-//        }
-//        if counter == products.count {
-//            for key in dataSource.keys {
-//                let values = Set(dataSource[key]!)
-//                dataSource[key] = Array(values)
-//                let sortValue = dataSource[key]?.sorted()
-//                dataSource[key] = sortValue
-//            }
-//            completion(dataSource,minPrice, maxPrice)
-//        }
-//
-//    }
-//        var minPrice = Int.min
-//        var maxPrice = Int.max
-//        var dataSource = [String: [String]]()
-//        print("calculateDataSource - allProducts = \(allProducts)")
-//        for product in allProducts {
-//            if let color = product.color {
-//                dataSource["color", default: []].append(color)
-//            }
-//            if let brand = product.brand {
-//                dataSource["brand", default: []].append(brand)
-//            }
-//            if let material = product.material {
-//                dataSource["material", default: []].append(material)
-//            }
-//            if let season = product.season {
-//                dataSource["season", default: []].append(season)
-//            }
-//            if let price = product.price {
-//
-//                   if price < minPrice {
-//                       print("Price - \(price)")
-//                       print("minPrice До - \(minPrice)")
-//                       minPrice = price
-//                       print("minPrice - \(minPrice)")
-//                   }
-//                   if price > maxPrice {
-//                       maxPrice = price
-//                   }
-//               }
-//        }
-//            print("min max - \(min)")
-//            var dataSourceType = [String: [String]]()
-//            // Удаление повторяющихся значений из каждой категории
-//            for key in dataSource.keys {
-//                let values = Set(dataSource[key]!)
-//                dataSourceType[key] = Array(values)
-//            }
-//
-//            for key in dataSourceType.keys {
-//                if var values = dataSourceType[key] {
-//                    values.sort()
-//                    dataSourceType[key] = values
-//                }
-//            }
-//            print("calculateDataSource() - \(min)")
-//            for key in dataSource.keys {
-//                if var values = dataSource[key] {
-//                    values.sort()
-//                    dataSource[key] = values
-//                }
-//            }

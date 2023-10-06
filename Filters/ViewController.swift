@@ -83,7 +83,7 @@ class ListViewController: UIViewController {
         collectionView.register(FilterCell.self, forCellWithReuseIdentifier: "filterCell")
         heightCnstrCollectionView = collectionView.heightAnchor.constraint(equalToConstant: 0)
         heightCnstrCollectionView.isActive = true
-        collectionView.backgroundColor = .blue
+        collectionView.backgroundColor = .clear
         view.addSubview(collectionView)
         
         tableView.delegate = self
@@ -101,7 +101,6 @@ class ListViewController: UIViewController {
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        print("viewDidLayoutSubviews")
         if Int(collectionView.collectionViewLayout.collectionViewContentSize.height) == 0 {
             heightCnstrCollectionView.constant = collectionView.frame.height
         } else {
@@ -113,7 +112,6 @@ class ListViewController: UIViewController {
         super.viewWillAppear(animated)
         setupCollectionView()
     }
-    
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
@@ -248,7 +246,6 @@ extension ListViewController: UICollectionViewDelegate, UICollectionViewDataSour
     
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        print("let label = UILabel() indexPath - \(indexPath)")
         var labelSize = CGSize()
         var label :UILabel? = UILabel()
         label?.font = UIFont.systemFont(ofSize: 17)
@@ -340,41 +337,6 @@ extension ListViewController {
         alert?.addAction(cancel)
     }
     
-//    func sortAlphabetically(list: inout [Product]) {
-//        list.sort { (product1, product2) -> Bool in
-//            guard let brand1 = product1.brand, let brand2 = product2.brand else {
-//                return false // Обработайте случаи, когда brand равно nil, если это необходимо
-//            }
-//            return brand1.localizedCaseInsensitiveCompare(brand2) == .orderedAscending
-//        }
-//    }
-//
-//    func sortPriceDown(list: inout [Product]) {
-//        list.sort { (product1, product2) -> Bool in
-//            guard let price1 = product1.price, let price2 = product2.price else {
-//                return false // Обработайте случаи, когда price равно nil, если это необходимо
-//            }
-//            return price1 > price2
-//        }
-//    }
-//
-//    func sortPriceUp(list: inout [Product]) {
-//        list.sort { (product1, product2) -> Bool in
-//            guard let price1 = product1.price, let price2 = product2.price else {
-//                return false // Обработайте случаи, когда price равно nil, если это необходимо
-//            }
-//            return price1 < price2
-//        }
-//    }
-//
-//    func sortRecommendation(list: inout [Product]) {
-//        list.sort { (product1, product2) -> Bool in
-//            guard let price1 = product1.sortIndex, let price2 = product2.sortIndex else {
-//                return false // Обработайте случаи, когда price равно nil, если это необходимо
-//            }
-//            return price1 > price2
-//        }
-//    }
     
     func sortAlphabetically() {
         dataSourceTableView.sort { (product1, product2) -> Bool in
@@ -500,7 +462,6 @@ extension ListViewController: FilterCellDelegate {
             if let index = selectedItem?.firstIndex(where: { $0.value == filterCell.label.text}) {
                 if let key = selectedItem?.first(where: { $0.value == filterCell.label.text })?.key {
                     if key == IndexPath(item: 333, section: 333) {
-                        print("key == IndexPath(item: 333, section: 333)")
                         isFixedPriceProducts = false
                     }
                 } else {
@@ -526,7 +487,6 @@ extension ListViewController: FilterCellDelegate {
                 heightCnstrCollectionView.constant = 0
                 dataSourceTableView = reserverDataSource
                 applyCurrentSorting()
-                //                dataSourceTableView = filterProductsUniversal(products: reserverDataSource)
                 navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemCyan
                 
             } else if let selectedItem = selectedItem {

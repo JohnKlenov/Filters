@@ -365,7 +365,10 @@ class CustomRangeViewController: UIViewController, UICollectionViewDataSource, U
             }
            
             if isFixedPriceProducts {
-//                configureRangeViewForScreenFilter(minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue)
+                print("isFixedPriceProducts isFixedPriceProducts isFixedPriceProducts")
+                if let minimumValue = minimumValue, let maximumValue = maximumValue, let lowerValue = lowerValue, let upperValue = upperValue  {
+                    configureRangeViewForScreenFilter(minimumValue: minimumValue, maximumValue: maximumValue, lowerValue: lowerValue, upperValue: upperValue)
+                    }
             } else {
                 if let minimumValue = minimumValue, let maximumValue = maximumValue, let lowerValue = lowerValue, let upperValue = upperValue  {
                     if lowerValue != upperValue {

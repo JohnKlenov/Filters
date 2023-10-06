@@ -157,7 +157,17 @@ class ListViewController: UIViewController {
     }
     
     private func setupCollectionView() {
+        
+        // if isFixedPriceProducts = true мы должны в selectedItem добавить priceRange
+        if  let isFixedPriceProducts = isFixedPriceProducts, let lowerValue = lowerValue, let upperValue = upperValue, isFixedPriceProducts {
+//            joined(separator: separator)
+            let rangePriceString = "from " + "\(Int(lowerValue))" + " to " + "\(Int(upperValue))"
+            let indexPath = IndexPath(item: 333, section: 333)
+            selectedItem?[indexPath] = rangePriceString
+        }
+        
         if let selectedItem = selectedItem {
+            
             let cell = selectedItem.map{$0.value}
             print("cell - \(cell)")
             dataSourceCollectionView = cell
@@ -177,6 +187,10 @@ class ListViewController: UIViewController {
     }
     
     @objc func filterButtonTapped() {
+        
+        let indexPath = IndexPath(item: 333, section: 333)
+        selectedItem?[indexPath] = nil
+        
         let customVC = CustomRangeViewController()
         customVC.allProducts = reserverDataSource
         customVC.delegate = self
@@ -338,6 +352,8 @@ extension ListViewController:CustomRangeViewDelegate {
 //        self.selectedCell = selectedCell
         self.selectedItem = selectedItem
         self.isFixedPriceProducts = isFixedPriceProducts
+        
+       
     }
 }
 
@@ -459,6 +475,7 @@ extension ListViewController {
         return filteredProducts
     }
     
+    // если у нас products.count == 0 мы calculateRangePrice не вызываем
     private func calculateRangePrice(products: [Product]) {
         
         var minPrice = Int.max
@@ -504,21 +521,39 @@ extension ListViewController: FilterCellDelegate {
             view.setNeedsLayout()
             view.layoutIfNeeded()
             if let index = selectedItem?.firstIndex(where: { $0.value == filterCell.label.text}) {
+                if let key = selectedItem?.first(where: { $0.value == filterCell.label.text })?.key {
+                    if key == IndexPath(item: 333, section: 333) {
+                        print("key == IndexPath(item: 333, section: 333)")
+                        isFixedPriceProducts = false
+                    }
+                } else {
+                    print("Returne message for analitic FB Crashlystics")
+                }
+
                 selectedItem?.remove(at: index)
             }
             if let selectedItem = selectedItem, selectedItem.isEmpty {
                 self.selectedItem = nil
                 self.isActiveScreenFilter = false
-                self.isFixedPriceProducts = false
+                // на всяк про всяк очистим проперти
+                isFixedPriceProducts = nil
+                minimumValue = nil
+                maximumValue = nil
+                lowerValue = nil
+                upperValue = nil
+                countFilterProduct = nil
+                
                 let layout = collectionView.collectionViewLayout as? UserProfileTagsFlowLayout
                 layout?.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
                 heightCnstrCollectionView.constant = 0
-                
-                dataSourceTableView = filterProductsUniversal(products: reserverDataSource)
+                dataSourceTableView = reserverDataSource
+//                dataSourceTableView = filterProductsUniversal(products: reserverDataSource)
                 navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemCyan
                 
             } else if let selectedItem = selectedItem {
                 // here we have to get a new filterProduct and returne here in dataSource UITableView
+                
+                // тут можно отслеживать isFixedPriceProducts и если true выполнять отдельной веткой
                 
                 let filteredColor = Array((selectedItem.filter { $0.key.section == 0 }).values)
                 let color = filteredColor.isEmpty ? nil : filteredColor
@@ -532,9 +567,19 @@ extension ListViewController: FilterCellDelegate {
                 let filteredSeason = Array((selectedItem.filter { $0.key.section == 3 }).values)
                 let season = filteredSeason.isEmpty ? nil : filteredSeason
                 
-                dataSourceTableView = filterProductsUniversal(products: reserverDataSource, color: color, brand: brand, material: material, season: season)
-                calculateRangePrice(products: dataSourceTableView)
-                countFilterProduct = dataSourceTableView.count
+                if let isFixedPriceProducts = isFixedPriceProducts, let lowerValue = lowerValue, let upperValue = upperValue, isFixedPriceProducts {
+                    dataSourceTableView = filterProductsUniversal(products: reserverDataSource, color: color, brand: brand, material: material, season: season, minPrice: Int(lowerValue), maxPrice: Int(upperValue))
+                    countFilterProduct = dataSourceTableView.count
+                } else {
+                    dataSourceTableView = filterProductsUniversal(products: reserverDataSource, color: color, brand: brand, material: material, season: season)
+                    countFilterProduct = dataSourceTableView.count
+                    if countFilterProduct == 0 {
+                        lowerValue = 0
+                        upperValue = 0
+                    } else {
+                        calculateRangePrice(products: dataSourceTableView)
+                    }
+                }
             }
         } else {
             print("Returne message for analitic FB Crashlystics")

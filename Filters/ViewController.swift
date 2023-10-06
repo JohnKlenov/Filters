@@ -4,8 +4,7 @@
 //
 //  Created by Evgenyi on 14.09.23.
 //
-// лдодло
-// first commit remote repository
+
 import UIKit
 
 enum AlertActions:String {
@@ -17,7 +16,6 @@ enum AlertActions:String {
 
 protocol CustomRangeViewDelegate: AnyObject {
     func didChangedFilterProducts(filterProducts:[Product], isActiveScreenFilter:Bool?, isFixedPriceProducts:Bool?, minimumValue: Double?, maximumValue: Double?, lowerValue: Double?, upperValue: Double?, countFilterProduct:Int?, selectedItem: [IndexPath:String]?)
-//    func didChangedFilterProducts(filterProducts:[Product], isActiveScreenFilter:Bool?, isFixedPriceProducts:Bool?, minimumValue: Double?, maximumValue: Double?, lowerValue: Double?, upperValue: Double?, countFilterProduct:Int?, selectedStates: [IndexPath: Bool]?, selectedCell: [Int: [String]]?)
 }
 
 class ListViewController: UIViewController {
@@ -27,17 +25,15 @@ class ListViewController: UIViewController {
     
     var reserverDataSource: [Product] = []
     var dataSourceTableView: [Product] = [] {
+        willSet {
+   
+        }
         didSet {
             tableView.reloadData()
         }
     }
     
-    var dataSourceCollectionView: [String] = [] {
-        didSet {
-            print("didSet dataSourceCollectionView ")
-//            collectionView.reloadData()
-        }
-    }
+    var dataSourceCollectionView: [String] = []
     
     var dataManager = FactoryProducts.shared
     
@@ -52,21 +48,6 @@ class ListViewController: UIViewController {
     
     var countFilterProduct:Int?
     var isFixedPriceProducts:Bool?
-    // отсюда мы сформируем контент для collectionView и при каждом удалении cell мы будем из него удалять значение
-    // selectedCell - [2: ["Leather", "Artificial Material"], 1: ["LCWKK"], 0: ["Bright"]]
-    //    selectedStates - [[2, 0]: true, [1, 2]: false, [0, 0]: true, [2, 1]: true, [1, 1]: true]
-    
-    // selectedCell - [1: ["Marko"]] - первая секция и имя cell
-    // selectedStates - [[1, 4]: true] - первая секция 4 элемент true выделен,  false нет
-    // так же мы должны удалять значения из selectedStates
-    
-    // filterProductsUniversal(products: allProducts, color: selectedCell[0], brand: selectedCell[1], material: selectedCell[2], season: selectedCell[3], minPrice: Int(rangeSlider.lowerValue), maxPrice: Int(rangeSlider.upperValue))
-    // затем мы должны каждый раз вызывать func filterProductsUniversal и обновлять этими данными таблицу
-    
-    // появилась мысль вынести всю сущность фильтр в один менеджер
-
-//    var selectedStates: [IndexPath: Bool]?
-//    var selectedCell: [Int: [String]]?
     
     var selectedItem: [IndexPath:String]?
     
@@ -112,7 +93,6 @@ class ListViewController: UIViewController {
         setupConstraints()
         configureNavigationItem()
         dataSourceTableView = dataManager.createRandomProduct()
-//        dataSourceCollectionView = ["DDDDDDrrtttt","e","TTTTTT","DD55555DDD", "TTT","DDDDDD","Ee"]
         
         sortRecommendation()
         reserverDataSource = dataSourceTableView
@@ -158,9 +138,7 @@ class ListViewController: UIViewController {
     
     private func setupCollectionView() {
         
-        // if isFixedPriceProducts = true мы должны в selectedItem добавить priceRange
         if  let isFixedPriceProducts = isFixedPriceProducts, let lowerValue = lowerValue, let upperValue = upperValue, isFixedPriceProducts {
-//            joined(separator: separator)
             let rangePriceString = "from " + "\(Int(lowerValue))" + " to " + "\(Int(upperValue))"
             let indexPath = IndexPath(item: 333, section: 333)
             selectedItem?[indexPath] = rangePriceString
@@ -195,8 +173,6 @@ class ListViewController: UIViewController {
         customVC.allProducts = reserverDataSource
         customVC.delegate = self
         if isActiveScreenFilter {
-//            customVC.selectedCell = selectedCell ?? [:]
-//            customVC.selectedStates = selectedStates ?? [:]
             customVC.selectedItem = selectedItem ?? [:]
             customVC.minimumValue = minimumValue
             customVC.maximumValue = maximumValue
@@ -252,10 +228,6 @@ extension ListViewController: UITableViewDelegate, UITableViewDataSource {
         cell.contentConfiguration = contentCell
         return cell
     }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//        collectionView.reloadData()
-    }
 }
 
 extension ListViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
@@ -289,49 +261,14 @@ extension ListViewController: UICollectionViewDelegate, UICollectionViewDataSour
         label = nil
         return labelSize
     }
-    
-    //        let font = UIFont.systemFont(ofSize: 17)
-    //        let text = dataSourceCollectionView[indexPath.row] // Получаем текст из вашего массива данных
-    //            let textBoundingSize = NSString(string: text).boundingRect(with: CGSize(width: 10, height: CGFloat.greatestFiniteMagnitude), options: .usesLineFragmentOrigin, attributes: [NSAttributedString.Key.font: font], context: nil).size // Рассчитываем ограничивающий прямоугольник на основе текста
-    //
-    //            return CGSize(width: textBoundingSize.width, height: textBoundingSize.height) // Возвращаем размеры ячейки с учетом паддингов
-
-
-    //        return CGSize(width: 50, height: 25)
-//        }
-        
-    //    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-    //
-    //        var labelSize = CGSize()
-    //        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "filterCell", for: indexPath) as? FilterCell
-    //
-    //        cell?.label.text = dataSourceCollectionView[indexPath.item]
-    //        labelSize = cell?.label.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)) ?? .zero
-    //////        if labelSize != .zero {
-    //////            labelSize = CGSize(width: labelSize.width + 20, height: labelSize.height + 20)
-    //////        }
-    //        labelSize = CGSize(width: labelSize.width + 20, height: labelSize.height + 20)
-    ////        return CGSize(width: 50, height: 25)
-    //        return labelSize
-    //    }
-    
 }
 
 extension ListViewController:CustomRangeViewDelegate {
     func didChangedFilterProducts(filterProducts: [Product], isActiveScreenFilter: Bool?, isFixedPriceProducts: Bool?, minimumValue: Double?, maximumValue: Double?, lowerValue: Double?, upperValue: Double?, countFilterProduct: Int?, selectedItem: [IndexPath:String]?) {
         
         dataSourceTableView = filterProducts
-        
-        switch changedAlertAction {
-        case .Recommendation:
-            sortRecommendation()
-        case .PriceDown:
-            sortPriceDown()
-        case .PriceUp:
-            sortPriceUp()
-        case .Alphabetically:
-            sortAlphabetically()
-        }
+       
+        applyCurrentSorting()
         
         if reserverDataSource.count == filterProducts.count {
             navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemCyan
@@ -348,8 +285,6 @@ extension ListViewController:CustomRangeViewDelegate {
         self.lowerValue = lowerValue
         self.upperValue = upperValue
         self.countFilterProduct = countFilterProduct
-//        self.selectedStates = selectedStates
-//        self.selectedCell = selectedCell
         self.selectedItem = selectedItem
         self.isFixedPriceProducts = isFixedPriceProducts
         
@@ -405,6 +340,42 @@ extension ListViewController {
         alert?.addAction(cancel)
     }
     
+//    func sortAlphabetically(list: inout [Product]) {
+//        list.sort { (product1, product2) -> Bool in
+//            guard let brand1 = product1.brand, let brand2 = product2.brand else {
+//                return false // Обработайте случаи, когда brand равно nil, если это необходимо
+//            }
+//            return brand1.localizedCaseInsensitiveCompare(brand2) == .orderedAscending
+//        }
+//    }
+//
+//    func sortPriceDown(list: inout [Product]) {
+//        list.sort { (product1, product2) -> Bool in
+//            guard let price1 = product1.price, let price2 = product2.price else {
+//                return false // Обработайте случаи, когда price равно nil, если это необходимо
+//            }
+//            return price1 > price2
+//        }
+//    }
+//
+//    func sortPriceUp(list: inout [Product]) {
+//        list.sort { (product1, product2) -> Bool in
+//            guard let price1 = product1.price, let price2 = product2.price else {
+//                return false // Обработайте случаи, когда price равно nil, если это необходимо
+//            }
+//            return price1 < price2
+//        }
+//    }
+//
+//    func sortRecommendation(list: inout [Product]) {
+//        list.sort { (product1, product2) -> Bool in
+//            guard let price1 = product1.sortIndex, let price2 = product2.sortIndex else {
+//                return false // Обработайте случаи, когда price равно nil, если это необходимо
+//            }
+//            return price1 > price2
+//        }
+//    }
+    
     func sortAlphabetically() {
         dataSourceTableView.sort { (product1, product2) -> Bool in
             guard let brand1 = product1.brand, let brand2 = product2.brand else {
@@ -413,7 +384,7 @@ extension ListViewController {
             return brand1.localizedCaseInsensitiveCompare(brand2) == .orderedAscending
         }
     }
-    
+
     func sortPriceDown() {
         dataSourceTableView.sort { (product1, product2) -> Bool in
             guard let price1 = product1.price, let price2 = product2.price else {
@@ -422,7 +393,7 @@ extension ListViewController {
             return price1 > price2
         }
     }
-    
+
     func sortPriceUp() {
         dataSourceTableView.sort { (product1, product2) -> Bool in
             guard let price1 = product1.price, let price2 = product2.price else {
@@ -431,13 +402,26 @@ extension ListViewController {
             return price1 < price2
         }
     }
-    
+
     func sortRecommendation() {
         dataSourceTableView.sort { (product1, product2) -> Bool in
             guard let price1 = product1.sortIndex, let price2 = product2.sortIndex else {
                 return false // Обработайте случаи, когда price равно nil, если это необходимо
             }
             return price1 > price2
+        }
+    }
+    
+    func applyCurrentSorting() {
+        switch changedAlertAction {
+        case .Recommendation:
+            sortRecommendation()
+        case .PriceDown:
+            sortPriceDown()
+        case .PriceUp:
+            sortPriceUp()
+        case .Alphabetically:
+            sortAlphabetically()
         }
     }
     
@@ -475,7 +459,6 @@ extension ListViewController {
         return filteredProducts
     }
     
-    // если у нас products.count == 0 мы calculateRangePrice не вызываем
     private func calculateRangePrice(products: [Product]) {
         
         var minPrice = Int.max
@@ -503,16 +486,9 @@ extension ListViewController {
     }
 }
 
-//if minPrice != maxPrice {
-////                configureRangeView(minimumValue: Double(minPrice), maximumValue: Double(maxPrice))
-//            } else {
-////                isForcedPrice = true
-////                rangeSlider.isEnabled = false
-////                rangeView.updateLabels(lowerValue: Double(minPrice), upperValue: Double(maxPrice))
-//            }
-
 extension ListViewController: FilterCellDelegate {
     func didDeleteCellFilter(_ filterCell: FilterCell) {
+        
         if let indexPath = collectionView.indexPath(for: filterCell) {
             
             dataSourceCollectionView.remove(at: indexPath.item)
@@ -520,6 +496,7 @@ extension ListViewController: FilterCellDelegate {
             
             view.setNeedsLayout()
             view.layoutIfNeeded()
+            
             if let index = selectedItem?.firstIndex(where: { $0.value == filterCell.label.text}) {
                 if let key = selectedItem?.first(where: { $0.value == filterCell.label.text })?.key {
                     if key == IndexPath(item: 333, section: 333) {
@@ -529,9 +506,10 @@ extension ListViewController: FilterCellDelegate {
                 } else {
                     print("Returne message for analitic FB Crashlystics")
                 }
-
+                
                 selectedItem?.remove(at: index)
             }
+            
             if let selectedItem = selectedItem, selectedItem.isEmpty {
                 self.selectedItem = nil
                 self.isActiveScreenFilter = false
@@ -547,13 +525,11 @@ extension ListViewController: FilterCellDelegate {
                 layout?.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
                 heightCnstrCollectionView.constant = 0
                 dataSourceTableView = reserverDataSource
-//                dataSourceTableView = filterProductsUniversal(products: reserverDataSource)
+                applyCurrentSorting()
+                //                dataSourceTableView = filterProductsUniversal(products: reserverDataSource)
                 navigationItem.rightBarButtonItems?[1].tintColor = UIColor.systemCyan
                 
             } else if let selectedItem = selectedItem {
-                // here we have to get a new filterProduct and returne here in dataSource UITableView
-                
-                // тут можно отслеживать isFixedPriceProducts и если true выполнять отдельной веткой
                 
                 let filteredColor = Array((selectedItem.filter { $0.key.section == 0 }).values)
                 let color = filteredColor.isEmpty ? nil : filteredColor
@@ -570,9 +546,11 @@ extension ListViewController: FilterCellDelegate {
                 if let isFixedPriceProducts = isFixedPriceProducts, let lowerValue = lowerValue, let upperValue = upperValue, isFixedPriceProducts {
                     dataSourceTableView = filterProductsUniversal(products: reserverDataSource, color: color, brand: brand, material: material, season: season, minPrice: Int(lowerValue), maxPrice: Int(upperValue))
                     countFilterProduct = dataSourceTableView.count
+                    applyCurrentSorting()
                 } else {
                     dataSourceTableView = filterProductsUniversal(products: reserverDataSource, color: color, brand: brand, material: material, season: season)
                     countFilterProduct = dataSourceTableView.count
+                    applyCurrentSorting()
                     if countFilterProduct == 0 {
                         lowerValue = 0
                         upperValue = 0
@@ -632,14 +610,6 @@ class FilterCell: UICollectionViewCell {
             label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0)
         ])
         
-//        NSLayoutConstraint.activate([
-//            deleteButton.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 0),
-//            deleteButton.leadingAnchor.constraint(equalTo: label.trailingAnchor,constant: 0),
-//            deleteButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: 0),
-//            deleteButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0), deleteButton.heightAnchor.constraint(equalTo: label.heightAnchor), deleteButton.widthAnchor.constraint(equalTo: deleteButton.heightAnchor)
-//        ])
-        
-//        deleteButton.leadingAnchor.constraint(equalTo: label.trailingAnchor,constant: 0),
         NSLayoutConstraint.activate([
             deleteButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: 0),
             deleteButton.centerYAnchor.constraint(equalTo: label.centerYAnchor),
@@ -659,6 +629,43 @@ class FilterCell: UICollectionViewCell {
         delegate?.didDeleteCellFilter(self)
     }
 }
+
+
+
+
+
+//        NSLayoutConstraint.activate([
+//            deleteButton.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 0),
+//            deleteButton.leadingAnchor.constraint(equalTo: label.trailingAnchor,constant: 0),
+//            deleteButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: 0),
+//            deleteButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0), deleteButton.heightAnchor.constraint(equalTo: label.heightAnchor), deleteButton.widthAnchor.constraint(equalTo: deleteButton.heightAnchor)
+//        ])
+        
+//        deleteButton.leadingAnchor.constraint(equalTo: label.trailingAnchor,constant: 0),
+//        let font = UIFont.systemFont(ofSize: 17)
+//        let text = dataSourceCollectionView[indexPath.row] // Получаем текст из вашего массива данных
+//            let textBoundingSize = NSString(string: text).boundingRect(with: CGSize(width: 10, height: CGFloat.greatestFiniteMagnitude), options: .usesLineFragmentOrigin, attributes: [NSAttributedString.Key.font: font], context: nil).size // Рассчитываем ограничивающий прямоугольник на основе текста
+//
+//            return CGSize(width: textBoundingSize.width, height: textBoundingSize.height) // Возвращаем размеры ячейки с учетом паддингов
+
+
+//        return CGSize(width: 50, height: 25)
+//        }
+    
+//    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+//
+//        var labelSize = CGSize()
+//        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "filterCell", for: indexPath) as? FilterCell
+//
+//        cell?.label.text = dataSourceCollectionView[indexPath.item]
+//        labelSize = cell?.label.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)) ?? .zero
+//////        if labelSize != .zero {
+//////            labelSize = CGSize(width: labelSize.width + 20, height: labelSize.height + 20)
+//////        }
+//        labelSize = CGSize(width: labelSize.width + 20, height: labelSize.height + 20)
+////        return CGSize(width: 50, height: 25)
+//        return labelSize
+//    }
 
 //    func didChangedFilterProducts(filterProducts: [Product], isActiveScreenFilter: Bool?, minimumValue: Double?, maximumValue: Double?, lowerValue: Double?, upperValue: Double?, countFilterProduct: Int?, selectedStates: [IndexPath : Bool]?, selectedCell: [Int : [String]]?) {
 //        dataSource = filterProducts

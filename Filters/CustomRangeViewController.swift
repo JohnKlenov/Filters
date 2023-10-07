@@ -679,6 +679,52 @@ class MyCell: UICollectionViewCell {
 }
 
 
+//class UserProfileTagsFlowLayout: UICollectionViewFlowLayout {
+//
+//    override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
+//        let newAttributesForElementsInRect = super.layoutAttributesForElements(in: rect)?.compactMap { $0.copy() as? UICollectionViewLayoutAttributes }
+//
+//        var leftMargin: CGFloat = 0.0
+//
+//        for attributes in newAttributesForElementsInRect ?? [] {
+//            if attributes.frame.origin.x == self.sectionInset.left {
+//                leftMargin = self.sectionInset.left
+//            } else {
+//                var newLeftAlignedFrame = attributes.frame
+//                newLeftAlignedFrame.origin.x = leftMargin
+//                attributes.frame = newLeftAlignedFrame
+//            }
+//            leftMargin += attributes.frame.size.width + 8 // Makes the space between cells
+//        }
+//
+//        return newAttributesForElementsInRect
+//    }
+//}
+
+
+// с этим ошибок на консоли меньше
+//class UserProfileTagsFlowLayout: UICollectionViewFlowLayout {
+//
+//    override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
+//        let newAttributesForElementsInRect = super.layoutAttributesForElements(in: rect)?.map { $0.copy() as! UICollectionViewLayoutAttributes }
+//
+//        var leftMargin: CGFloat = 0.0
+//
+//        for attributes in newAttributesForElementsInRect ?? [] {
+//            if attributes.frame.origin.x == self.sectionInset.left {
+//                leftMargin = self.sectionInset.left
+//            } else {
+//                var newLeftAlignedFrame = attributes.frame
+//                newLeftAlignedFrame.origin.x = leftMargin
+//                attributes.frame = newLeftAlignedFrame
+//            }
+//            leftMargin += attributes.frame.size.width + 8 // Makes the space between cells
+//        }
+//
+//        return newAttributesForElementsInRect
+//    }
+//}
+
 class UserProfileTagsFlowLayout: UICollectionViewFlowLayout {
 
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
@@ -768,7 +814,7 @@ class CustomTabBarView: UIView {
         configButton.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incomig in
 
             var outgoing = incomig
-            outgoing.font = UIFont.systemFont(ofSize: 17, weight: .bold)
+            outgoing.font = UIFont.systemFont(ofSize: 17, weight: .medium)
             return outgoing
         }
         var button = UIButton(configuration: configButton)

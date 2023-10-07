@@ -137,7 +137,7 @@ class ListViewController: UIViewController {
     private func setupCollectionView() {
         
         if  let isFixedPriceProducts = isFixedPriceProducts, let lowerValue = lowerValue, let upperValue = upperValue, isFixedPriceProducts {
-            let rangePriceString = "from " + "\(Int(lowerValue))" + " to " + "\(Int(upperValue))"
+            let rangePriceString = "from " + "\(Int(lowerValue))" + " to " + "\(Int(upperValue))" + " р."
             let indexPath = IndexPath(item: 333, section: 333)
             selectedItem?[indexPath] = rangePriceString
         }
